@@ -4,7 +4,7 @@ verben=[("beisst",""),("prügelt sich", "mit"),("schaut", "fern mit"),("haut",""
         ("lernt", "mit"), ("schreibt", "ab von"), ("liebt",""),
         ("bestiehlt",""),("spielt","mit"), ("ärgert",""), ("küsst","")]
 nomen=["Haus","Auto","Flugzeug","Schiff","Bagger","BMW"]
-                                       # muss sächlich oder männlihc sein
+                                       # muss sächlich oder männlich sein
 mengenangabe=["gar nicht","ein wenig","etwas","ziemlich",
          "sehr", "viel", "zu viel","heftigst","leidentschaftlich","halbherzig"]
                                        # unbestimmte mengenangabe
