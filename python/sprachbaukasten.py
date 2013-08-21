@@ -1,6 +1,7 @@
 import random
 verben=["isst","prügelt sich mit","schaut fern mit","haut", "lernt mit",
-    "schreibt ab von", "liebt", "bestiehlt", "spielt mit", "ärgert", "küsst"]
+    "schreibt ab von", "liebt", "bestiehlt", "spielt mit", "ärgert", "küsst",
+        "bekämpft","verzaubert"]
 objekte=["Haus","Auto","Flugzeug","Schiff"] # muss sächlich sein
 wiesehr=["gar nicht","ein wenig","etwas","ziemlich",
          "sehr", "viel", "zu viel"]
