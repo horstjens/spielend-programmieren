@@ -1,1 +1,94 @@
-freie (free/libre/open source) Spiele
+﻿freie (free/libre/open source) Spiele 
+
+Begriffserklärung:
+Es gibt eine Vielzahl von auf den ersten Blick kostenlosen Spielen; und es gibt wirklich freie Spiele, – dieser Folder stellt ein paar davon vor.:
+
+Freie Software (Spiele) gemäß der Definition der Free Software Foundation (FSFE.org) gewährt dem Nutzer (Spieler) folgende 4 Grundfreiheiten, die Richard Stallman in der GPL-Lizenz definiert hat (http://www.gnu.org/philosophy/free-sw.de.html), nämlich:
+
+Die Freiheit, das Programm auszuführen wie man möchte, für jeden Zweck (Freiheit 0: use). 
+Die Freiheit, die Funktionsweise des Programms zu untersuchen und zu verändern. (Freiheit 1: study). Der Zugang zum Quellcode (Sourcecode) ist dafür Voraussetzung.
+Die Freiheit, das Programm weiterzuverbreiten und damit seinen Mitmenschen zu helfen (Freiheit 2: share).
+Die Freiheit, das Programm zu verbessern und diese Verbesserungen der Öffentlichkeit freizugeben, damit die gesamte Gemeinschaft davon profitiert(Freiheit 3: improve). Der Zugang zum Quellcode ist dafür Voraussetzung.
+Unfreie (proprietäre) Software erlaubt keine dieser Freiheiten. So ist z.B. bei unfreien Spielen die Benutzung nur auf bestimmten Betreibssystemen möglich oder nur unter gewissen Bedingungen (online-Zwang) – kein freedom 0: to use as you wish.  Da der Quellecode (wie ein Programm programmiert wurde) nicht veröffentlicht wird und dessen Veröffentlichung sogar rechtlich behindert wird, ist es nicht möglich aus einem unfreien Spiel etwas über das Programmieren zu lernen – kein freedom 1: to study.  Gegen die Freiheit, ein Spiel mit Freunden zu teilen (freedom2: share) läuft eine PR-Kampagne die diese Freiheit mit Piraterie (Kapern von Schiffen) vergleicht. Die Freiheit, ein Programm zu verbessern und zu verändern (Freedom 3: improve) -bei Spielen als Modden (Modifikation) bekannt, z.B. sind Counterstrike oder DOTA  Mods von unfreien Spielen- ist rechtlich oft gar nicht erlaubt sondern maximal geduldet. 
+
+Nicht wirklich frei:
+Andere Begriffe wie Freeware ( darf kostenlos erworben und verbreitet werden), Shareware (darf verbreitet werden), Free-to-play (darf kostenlos, meist im Internet, gespielt werden, kann aber kostenpflichtige Spielelemente enthalten), Demo/Crippleware (unvollständiges Spiel welches verbreitet werden darf) erfüllen nicht die 4 Grundfreiheiten der GPL Lizenz und sind daher nicht freie Software sondern nur etwas weniger unfrei.
+
+Kostenlos: 
+Freie Spiele sind zwar oft kostenlos erhältich, es ist aber durchaus legal für freie Software Geld zu verlangen (freedom 0: use). Nicht legal ist es das Kopieren von freier Software zu verbieten. Möglichkeiten, mit freier (Spiele)-Software Geld zu verdienen sind unter anderem: Spenden für die Weiterentwicklung sammlen, Vorab-finanzierung (z.B. via Kickstarter), die Trennung von Sourcecode und Artwork (Grafiken/Musik/Texte), wobei der nur der Programmcode frei ist, sowie das kommerzielle Anbieten von Dienstleistungen (Services), z.B. das Betreiben eines Servers für Multiplayer-Spiele oder das Verwalten einer weltweiten Ranking-Liste.
+
+
+
+Freie (free/libre/open source) Spiele:
+
+freeciv
+
+freecol
+
+battle of wesnoth
+
+minetest
+
+0ad
+
+Crawl
+
+bzflag
+
+Emilia Pinball Emulator
+
+Frozen Bubble
+Gltron clone
+I have no tomatoes
+bomberman
+Super Transball 2
+Thrust clone
+
+Airstrike: 2 player, single screen dogfight mit Doppeldeckern
+
+Flight gear: Flugsimulator
+
+gl117: action-flugsimulator
+
+
+Neverball
+
+Pinugs: Lemmings-Klon
+
+Trackballs: Marble Madness-Klon
+
+Secret Maryo Chronicles: Mario Klon
+
+Blockout2
+
+mirrormagic
+
+super tux cart
+
+trigger rally
+
+super tux cart
+
+extreme tuxracer
+
+powermanga
+
+Tumiki Fighters
+
+lin-city ng
+openttd
+Advanced Strategic Command
+Rundenbasierter Battle-isle hexfeldstrategie klon
+
+megaglest RTS
+Scorched3D
+Hedgewars
+Widelands
+M.A.R.S.
+
+
+
+
+
+ 
+
