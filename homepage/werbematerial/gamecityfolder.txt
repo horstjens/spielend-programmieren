@@ -21,6 +21,8 @@ Freie Spiele sind zwar oft kostenlos erhältich, es ist aber durchaus legal für
 
 Freie (free/libre/open source) Spiele:
 
+ufoai
+
 freeciv
 
 freecol
