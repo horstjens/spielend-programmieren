@@ -21,16 +21,15 @@ Freie Spiele sind zwar oft kostenlos erhältich, es ist aber durchaus legal für
 
 Bei-Spiele
 
-Alleine das Repository der Linux-Distribution „Ubuntu“ listet unter dem Eintrag „games“ mehr als tausend Einträge, und das sind bei weitem nicht alle erhältlichen freien (free/libre/open source) Spiele. Anbei eine kleine Auswahl mit Vertretern typischer Spiele-Genres:
+Alleine das Repository der Linux-Distribution „Ubuntu“ listet unter dem Eintrag „games“ mehr als tausend Einträge, und das sind bei weitem nicht alle erhältlichen freien (free/libre/open source) Spiele. Anbei eine kleine Auswahl mit Vertretern typischer Spiele-Genres. Alle diese Spiele laufen auf dem freien Betriebssystem Linux sowie meistens auch unter unfreien Betriebssystemen wie Windows oder MacOS:
 
-Freie (free/libre/open source) Spiele:
 
 Name: Ufoai
 Web: http://ufoai.org/
 Spieler: Singleplayer, bis zu 6 Spieler via LAN möglich
-Technik: 3D-Karte notwendig (OPENGL)
+Technik: 3D-Karte notwendig (OPENGL), Map-Editor vorhanden. Übersetzer gesucht!
 Genre: Strategie/Taktikspiel mit Science-Fiction Setting. Rundenbasierte Kämpfe in 3D Engine. Strategiemodus läuft in pausierbarer Echtzeit.
-Vorfahren: Ufoai ist eine Hommage an die Xcom Spiele aus den 90er Jahren, allerdings mit einer modernen 3D Grafik (Quake2 Engine). Story, Texte und Waffen orientieren sich am ersten Xcom Spiel (Ufo defense).
+Siehe auch: Ufoai ist eine Hommage an die Xcom Spiele aus den 90er Jahren, allerdings mit einer modernen 3D Grafik (Quake2 Engine). Story, Texte und Waffen orientieren sich am ersten Xcom Spiel (Ufo defense).
 In Kürze: Die Menschheit wird von Außerirdischen in fliegenden Untertassen bedroht, Städte werden terrorisiert und Menschen entführt. Als Sieler errichtet man im Strategie-Modus Basen auf einer drehbaren 3D-Weltkarte, forscht an neuen Waffen, managt Basen, Abfangjäger, Soldaten und Personal und versucht durch erfolgreiche Abwehreinsätze Geld von den einzelnen Nationen zu bekommen. Gesichtete Ufos werden mit Abfangjägern bekämpft, abgeschossene Ufos (oder angegriffene Städte) erforscht der Spieler in einer rundenbasierten, 3D-Taktik-Karte, wobei jeder einzelne Soldat einzeln gesteuert wird. 
 Bildunterschrift: Einsatz auf der zoom-und drehbaren 3D-Taktik-Karte: Die mehrgeschoßige Villa in der Bildschirmmitte muss von Aliens gesäubert werden, anschließend kann das gelandete UFO gestürmt werden.
 
@@ -40,40 +39,81 @@ Web: http://freeciv.wikia.com/
 Spieler: Singleplayer, bis zu 126 Spieler (LAN, Internet, Hotseat)
 Technik: Download für jedes Betriebssystem, zusätzlich im Browser spielbare HTML5 Version 
 Genre: 4x (Explore, Expand, Exploit, Exterminate) Game, rundenbasiertes Welteroberungs-Strategiespiel
-Vorfahren: Sid'Meiers Civilisation (199?), welches wiederum auf einem Brettspiel beruht
+Siehe auch: Sid'Meiers Civilisation (1991) welches wiederum auf einem Brettspiel beruht. FreeCol. 
 In Kürze: Menschheitsgeschichte zum nachspielen: Auf einer Scrollbaren 2D Karte beginnt man 3.000 vor Christus mit einer mickrigen Siedler Einheit eine unbekannte, zufallsgenerierte Welt zu erkunden. Rundenweise bewegt man seine Einheiten, gründet Städte, baut Straßen und Infrastruktur, erobert Babarendörfer und Mitspieler-Nationen, investiert Geld in Forschung, sozialen Frieden und Militär. Spielziel ist entweder Erreichen der Weltherrschaft oder als Erster mit dem Bau eines Auswanderungsraumschiffes fertig zu werden.
 Bildunterschrift: Brasilien (Bildmitte) ist dicht besiedelt, mit gut ausgebauter Infrastruktur (Eisenbahn, Straßen). 
 
 
 Name: Freecol
 Web: http://www.freecol.org/
-Spieler:																																					
-Technik:
-Genre:
-Vorfahren:
-In Kürze:
-Bildunterschrift:
+Spieler: 1 - 8												
+Technik: in Java programmiert
+Genre: 4x, rundenbasiertes Strategiespiel über die Kolonisierung Amerikas.
+Vorfahren: Sid' Meiers Colonisation (1994)
+In Kürze: Ähnlich wie in Freeciv beginnt der Spieler mit einem kleinen Schiff und wenigen Siedlern 1492 die (zufallsgenerierte) „neue Welt“ zu besiedeln. Im Gegensatz zu Freeciv liegt der Fokus in diesem Spiel stärker auf der Spezialisierung von Einheiten (Tabak-Pflanzer, Waffenschmied) und dem diplopmatisch, wirtschaftlich und militärischem Beziehungsmanagement zu Eingenbornen-Nationen und anderen Kolonialmächten. Endziel vom Spiel ist es erfolgreich die Unabhängigkeit vom europäischen Mutterland auszurufen und gegen die darauffolgende Invasion der Kontinental-Armee zu bestehen.
+Bildunterschrift: Freecol bringt stimmungsvolle Zeitungsnachrichten zu historischen Anlässen.
 
-Name:
+Name: battle of wesnoth
+Web: http://www.wesnoth.org/
+Spieler: 1 - 2
+Technik: Map- und Mission-Editor vorhanden. Sehenswerte (frei-lizensierte) handgezeichnete Einheiten-Grafiken.
+Genre: rundenbasierte Hexfeld Strategie in Fantasy-Setting
+siehe auch: Battle Isle, Fantasy General
+In Kürze: In diesem Vorzeigeprojekt der freien Software spielt man in einer schönen, handgezeichneten Fantasywelt mit Einheiten wie Menschen, Zwergen und Trollen epische Schlachten und Feldzüge nach. Jede Einheit (Bogenschütze, Skelette, Waldläufer etc.) hat unterschiedliche Eigenschaften wie Trefferpunkte, Bewegung, Fern- und Nahkampfwerte. Eine große Rolle spielt das taktisch geschickte Manövrieren und Umzingeln kämpfender Einheiten. Neue Einheiten dürfen nur in Burgen rekrutiert werden, das dazu nötige (stets zu knappe) Geld wird durch Besetzen von Dörfern verdient. Veteranen-Einheiten bekommen bessere Fähigkeiten und dürfen im Rahmen einer Kampagne ins nächste Szenario mitgenommen werden.
+Bildunterschrift: Die Einheit in der unteren Burg fügt dem Angreifer im Norden 3 Schadenspunkte zu.
+
+Name: Flight gear
+Web: 
+Spieler: 1 
+Technik: 3D-Karte notwendig
+Genre: Flugsimulator
+siehe auch: Flight Simulator, gl117 (freier Action-Flugsimulator) 
+In Kürze: ein freier Flugsimulator für den Hobbypilot. Simuliert werden möglichst detailgetreu einmotorige Sportflugzeuge, daneben gibt es einige „Spaß“-Flugzeuge wie z.B. fliegende Untertassen.
+Bildunterschrift: 3D Grafik mit echten Landschaftsdaten
+
+Name: bzflag
 Web:
-Spieler:
-Technik:
-Genre:
-Vorfahren:
-In Kürze:
-Bildunterschrift:
+Spieler: 2 - 16
+Technik: 3D-Karte und Internetverbindung erforderlich
+Genre: 3D-Echtzeit Multiplayer Kampf mit Vektor-Panzern
+siehe auch: Battlezone, Egoshooter
+In Kürze: Ein sehr eigenwilliger Egoshooter bei dem man nicht eine Person mit unterschiedlichen Waffen steuert sondern eine Art 3D-Panzer mit langer Nachladezeit, der dafür hüpfen kann. In den Polygon-Arenen spielt man in Teams, nützt Pyramiden und Würfel als Deckung und achtet auf abprallende Schüsse.
+Bildunterschrift: Die eigenartigen 3D-Welten in Battlezone 
 
-freecol
+Name: trigger rally
+Web: https://triggerrally.com/
+Spieler: 1 
+Technik: 3D Karte erforderlich, HTML5 Version im Browser spielbar, Streckeneditor (auch online) vorhanden
+Genre: Autorennspiel
+siehe auch: Tuxracer, Tuxcarts
+In Kürze: Mit einem Rallywagen durch unebene Pisten brettern
+Bildunterschrift: staubige Rennstrecken laden zum driften ein.
 
-battle of wesnoth
+Name: Minetest
+Web: http://www.minetest.net/
+Spieler: 1 - 50
+Technik: niedrigauflösende 3D-Grafik. Internetanbindung oder LAN für Mehrspielermodus erforderlich. Eigene Gegenstände per Skriptsprache LUA manipulierbar.
+Genre: Sandbox-Game
+siehe auch: Minecraft
+In Kürze: ein freier Nachbau des Minecraft Spiels. Der Spieler kann zufällig generierte 3D Klötzchenwelten bearbeiten, Materialien abbauen (minen), Gegenstände herstellen (Craften), Bergwerke nach Monstern durchsuchen oder beliebige Bauwerke erschaffen.
+Bildunterschrift: selbstgebaute Minetest-Landschaft
 
-minetest
 
-0ad
 
-Crawl
+Name: 0ad
+Web: http://play0ad.com/
+Spieler: 1 - 6
+Technik: 3D-Karte erforderlich. 
+Genre: Real-Time-Strategie Spiel im historischen Setting
+siehe auch: Age of Empires
+In Kürze: Der Spieler bwegt in Echtzeit seine Anfangseinheiten auf einer schönen 3D-Karte umher, baut Resourcen (Steine, Holz, Korn etc.) ab, baut eine Stadt auf, erforscht und produziert bessere Einheiten und erobert feindliche Städte. 
+Bildunterschrift: 0Ad besticht durch schöne 3D Grafiken und historisch gut recherchierte Einheiten.
 
-bzflag
+
+
+Dungeon Crawl Stone Soup
+
+
 
 Emilia Pinball Emulator
 
@@ -86,9 +126,7 @@ Thrust clone
 
 Airstrike: 2 player, single screen dogfight mit Doppeldeckern
 
-Flight gear: Flugsimulator
 
-gl117: action-flugsimulator
 
 
 Neverball
@@ -136,7 +174,43 @@ Web:
 Spieler:
 Technik:
 Genre:
-Vorfahren:
+siehe auch:
+In Kürze:
+Bildunterschrift:
+
+Name:
+Web:
+Spieler:
+Technik:
+Genre:
+siehe auch:
+In Kürze:
+Bildunterschrift:
+
+Name:
+Web:
+Spieler:
+Technik:
+Genre:
+siehe auch:
+In Kürze:
+Bildunterschrift:
+
+Name:
+Web:
+Spieler:
+Technik:
+Genre:
+siehe auch:
+In Kürze:
+Bildunterschrift:
+
+Name:
+Web:
+Spieler:
+Technik:
+Genre:
+siehe auch:
 In Kürze:
 Bildunterschrift:
 
