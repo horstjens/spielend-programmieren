@@ -1,4 +1,5 @@
-﻿{Franz: die Screenshots haben immer den gleichen Anfangsnamen wie das beschriebene Spiel}
+﻿{Franz: die Screenshots haben immer den gleichen Anfangsnamen wie das beschriebene Spiel
+bitte noch stallmann-Foto und cc-by logo einfügen. Impressum ev. ändern auf FSFE}
 
 freie (free/libre/open source) Spiele 
 
@@ -181,3 +182,10 @@ Programmieren lernen:
 {Horst's Werbung, bitte Tuxstick2.png einfügen }
 
 Von freier Software selbst programmieren zu lernen und eigene (freie) (Apps oder Spiele-Projekte zu veröffentlichen ist erklärtes Kursziel der Programmierkurse für Kinder und Jugendliche bei Spielend-Programmieren. 100% free libre open source! Nähere Information über Kurszeiten, Ferienkurse, Preise, lostenlose Probestunden, Auftritte in Schulen und Veranstaltungen (Geburtstagsfeiern) finden Sie auf der Homepage: http://spielend-programmieren.at 
+
+Impressum, für den Inhalt verantwortlich:
+Horst JENS, Firma spielend-programmieren
+http://spielend-programmieren.at
+Brigittenauerlände 6, 1020 Wien, Österreich
+
+Alle Texte und Grafiken: cc-by
