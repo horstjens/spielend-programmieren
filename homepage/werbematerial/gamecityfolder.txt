@@ -1,9 +1,5 @@
 ﻿freie (free/libre/open source) Spiele 
 
-Begriffserklärung:
-Es gibt eine Vielzahl von auf den ersten Blick kostenlosen Spielen; und es gibt wirklich freie Spiele, – dieser Folder stellt ein paar davon vor.:
-
-
 
 Freie Software (Spiele) gemäß der Definition der Free Software Foundation (FSFE.org) gewährt dem Nutzer (Spieler) folgende 4 Grundfreiheiten, die Richard Stallman in der GPL-Lizenz definiert hat (http://www.gnu.org/philosophy/free-sw.de.html), nämlich:
 
@@ -11,6 +7,7 @@ Die Freiheit, das Programm auszuführen wie man möchte, für jeden Zweck (Frei
 Die Freiheit, die Funktionsweise des Programms zu untersuchen und zu verändern. (Freiheit 1: study). Der Zugang zum Quellcode (Sourcecode) ist dafür Voraussetzung.
 Die Freiheit, das Programm weiterzuverbreiten und damit seinen Mitmenschen zu helfen (Freiheit 2: share).
 Die Freiheit, das Programm zu verbessern und diese Verbesserungen der Öffentlichkeit freizugeben, damit die gesamte Gemeinschaft davon profitiert(Freiheit 3: improve). Der Zugang zum Quellcode ist dafür Voraussetzung.
+
 Unfreie (=proprietäre) Software erlaubt keine dieser Freiheiten. So ist z.B. bei unfreien Spielen die Benutzung nur auf bestimmten Betreibssystemen möglich oder nur unter gewissen Bedingungen (online-Zwang) – kein freedom 0: to use as you wish.  Da der Quellcode (wie ein Programm programmiert wurde) nicht veröffentlicht wird und dessen Veröffentlichung sogar rechtlich behindert wird, ist es nicht möglich aus einem unfreien Spiel etwas über das Programmieren zu lernen – kein freedom 1: to study.  Gegen die Freiheit, ein Spiel mit Freunden zu teilen (freedom2: share) läuft eine PR-Kampagne die diese Freiheit mit Piraterie (Kapern von Schiffen) vergleicht. Freie Software ist in der Praxis nicht von Altersfreigabesystemen und politischen Zensurmechanismen betroffen, da diese meist auf ein Verkaufs- bzw. Bewerbeverbot abzielen.  Die Freiheit, ein Programm zu verbessern und zu verändern (Freedom 3: improve) -bei Spielen als Mod (=Modifikation, Änderung) bekannt, z.B. sind Counterstrike oder DOTA  Mods von unfreien Spielen- ist rechtlich oft gar nicht erlaubt sondern maximal geduldet. 
 
 Nicht wirklich frei:
@@ -111,7 +108,14 @@ Bildunterschrift: 0Ad besticht durch schöne 3D Grafiken und historisch gut rech
 
 
 
-Dungeon Crawl Stone Soup
+Name: Dungeon Crawl Stone Soup (Crawl)
+Web: http://crawl.develz.org/wordpress/
+Spieler: 1 
+Technik: rundenbasiertes Dungeon-Erforschen. Große Bildschirmauflösung (Tiles-Modus) und Tastatur mit Ziffernblock empfehlenswert. Auch im Browser spielbar.  
+Genre: Rogue-Like 
+siehe auch: Nethack, Rogue, Diablo
+In Kürze: Das Konzept eines Rogue-likes ist schnell erklärt: Der Spieler muss in ein zufallsgeneriertes, mehrere Ebenen tiefes Verlies (=Dungeon) erforschen, Schätze finden, Fallen ausweichen und Monster bekämpfen. Crawl bietet dem Spieler mehrere Komfortfunktionen (automatische Dungeonerkundung) und befreit das Spiel von unnötigen Optionen, ohne dabei an Komplexität zu verlieren. Der Spieler wählt zu Spielbeginne eine Rasse (Zwerg, Katze, Zombie, Oktopus...) und einen Beruf (diverse Magier, Priester, Kämpfer und Hyprid-Klassen). Durch überleben von Kämpfen und sammen von Erfahrungspunkten steigt der Spieler im Level auf verbessert seine Fähigkeiten (er kann z.B. schwierigere Zaubersprüche lernen), während er gleichzeitig immer tiefer in den Dungeon hinabsteigt und immer gefährlichere Monster bekämft. Durch das optionale wählen (oder wechseln) einer Religion gewähren die im Spiel vorhandenen Götter diverse Boni, verlangen dafür aber Opfer oder Verhaltensregeln (z.B. das Verbot zu zaubern) und bestrafen Fehlverhalten. Spielzeil ist es, mindestens drei gut bewachte Runen zu finden und diese lebendig zurück zur Oberfläche zu bringen. Wie bei rogue-likes üblich herrscht Permadeath: Wenn die Spielfigur ihr Leben verliert, ist es nicht möglich einen älteren Sielstand zu laden.
+Bildunterschrift: Der Spieler (Mitte) hat ein paar Dämonen (mit Herz) beschwört. Der Frosch (oben) ist verwirrt oder hat den Spieler noch nicht bemerkt.
 
 
 
