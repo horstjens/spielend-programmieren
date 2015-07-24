@@ -341,31 +341,38 @@ class PygView(object):
         self.status = [""]
 
 
+        self.refresh_background = True
+
+
     def paint(self):
-        y = 0
-        for line in self.level.paint(self.player):
-            x = 0
-            for char in line:
-                if char == "#":
-                    self.screen.blit(self.WALL, (x,y))
-                elif char == ".":
-                    self.screen.blit(self.FLOOR, (x,y))
-                elif char in "123456789":
-                    self.screen.blit(self.SIGN, (x,y))
-                elif char == "<":
-                    self.screen.blit(self.STAIRUP, (x,y))
-                elif char == ">":
-                    self.screen.blit(self.STAIRDOWN, (x,y))
-                elif char == "T":
-                    self.screen.blit(self.TRAP, (x,y))
-                elif char == "L":
-                    self.screen.blit(self.LOOT, (x,y))
-                elif char == "D":
-                    self.screen.blit(self.DOOR, (x,y))
-                x += SIDE
-            y += SIDE
+        if self.refresh_background:
+            y = 0
+            for line in self.level.paint(self.player):
+                x = 0
+                for char in line:
+                    if char == "#":
+                        self.background.blit(self.WALL, (x,y))
+                    elif char == ".":
+                        self.background.blit(self.FLOOR, (x,y))
+                    elif char in "123456789":
+                        self.background.blit(self.SIGN, (x,y))
+                    elif char == "<":
+                        self.background.blit(self.STAIRUP, (x,y))
+                    elif char == ">":
+                        self.background.blit(self.STAIRDOWN, (x,y))
+                    elif char == "T":
+                        self.background.blit(self.TRAP, (x,y))
+                    elif char == "L":
+                        self.background.blit(self.LOOT, (x,y))
+                    elif char == "D":
+                        self.background.blit(self.DOOR, (x,y))
+                    x += SIDE
+                y += SIDE
         line = write(self.status[-1])
         ##### paint player and monsters over background
+        scrollx = 0
+        scrolly = 0
+        self.screen.blit(self.background, (scrollx, scrolly))
         for monster in self.level.monsters:
             self.screen.blit(monster.bild, (monster.x * SIDE, monster.y * SIDE))
         ### paint player
@@ -381,6 +388,7 @@ class PygView(object):
         while running and self.player.hitpoints > 0:
             self.status = self.status[:50] # only keep the last 50 lines
             self.level = self.levels[self.player.z]
+            self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
