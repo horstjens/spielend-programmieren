@@ -332,6 +332,7 @@ class PygView(object):
         PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, SIDE, SIDE), (0, 0, 0))
         PygView.DOOR  = PygView.FEAT.image_at((SIDE*2,SIDE,SIDE,SIDE))
         PygView.LOOT  = PygView.MAIN.image_at((SIDE*17,SIDE*21,SIDE,SIDE))
+        PygView.KEY = PygView.FIGUREN.image_at((76, 1684,9,25))
 
 
         self.player = Player(x,y,hp)
@@ -366,6 +367,8 @@ class PygView(object):
                         self.background.blit(self.LOOT, (x,y))
                     elif char == "D":
                         self.background.blit(self.DOOR, (x,y))
+                    elif char == "k":
+                        self.background.blit(self.KEY, (x,y))
                     x += SIDE
                 y += SIDE
         line = write(self.status[-1])
@@ -484,7 +487,8 @@ class PygView(object):
 
             #pressedkeys = pygame.key.get_pressed() 
 
-            pygame.display.set_caption("player hp: %i press Esc to quit. Fps: %.2f (%i x %i)"%(self.player.hitpoints, self.clock.get_fps(), self.width, self.height))
+            pygame.display.set_caption("player hp: %i keys: %i  press Esc to quit. Fps: %.2f (%i x %i)"%(
+                            self.player.hitpoints, self.player.keys, self.clock.get_fps(), self.width, self.height))
             self.paint()
             pygame.display.flip()          
         # ------------ game over -----------------
