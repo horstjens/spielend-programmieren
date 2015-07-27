@@ -10,11 +10,12 @@ except NameError:                      # nur wichtig für python version2
 
 
 """
-name: pyrogue
-descr: rogue game using python + pygame. graphics from dungeon crawl stone soup
-URL:
+name: pygamerogue
+URL: https://github.com/horstjens/spielend-programmieren/tree/master/pyrogue
 Author:  Horst JENS
+Email: horstjens@gmail.com
 Licence: gpl, see http://www.gnu.org/licenses/gpl.html
+descr: a rogue game using python + pygame. graphics from dungeon crawl stone soup
 """
 
 ####
@@ -26,12 +27,11 @@ SIDE = 32     # constant
 
 
 def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
+    print(msg)
     myfont = pygame.font.SysFont(font, fontsize)
     mytext = myfont.render(msg, True, fontcolor)
     mytext = mytext.convert_alpha()
     return mytext
-
-
 
 
 def hilfe():
@@ -145,6 +145,9 @@ class Monster(object):
         else:
             self.bild = bild
         self.name = "Monster"
+        self.strength = random.randint(1,10)
+        self.dexterity = random.randint(1,10)
+        self.intelligence = random.randint(1,10)
 
         self.rucksack = {}
         for z in ["Taschenmesser", "Schwert", "Schild", "Rüstung"]:
@@ -157,19 +160,21 @@ class Monster(object):
         return random.choice(dirs)   #return dx, xy
 
 
-
-
 class Boss(Monster):
     def __init__(self, x,y,hp, bild):
-        pass
+        Monster.__init__(self, x, y, hp, bild)
+
+    def ai(self):
+        """a Boss is intelligent enough to chase the player"""
 
 
 class Player(Monster):
     def __init__(self, x, y, hp=0, bild = ""):
         Monster.__init__(self, x, y, hp, bild)
         self.name = "Player"
+        self.rucksack = {}
         self.z = 0
-        self.keys = 0
+        self.keys = []
         if hp == 0:
             self.hitpoints = random.randint(5,10)
         else:
@@ -244,12 +249,14 @@ class Item(object):
         self.bild = None
         self.carried = False # in someone's inventory?
 
+
 class Trap(Item):
     def __init__(self, x, y):
         Item.__init__(self, x, y)
         self.level = random.randint(1, 5)
         self.hitpoints = self.level * 2
         self.bild = PygView.TRAP
+
 
 class Key(Item):
     def __init__(self, x, y, color="dull"):
@@ -265,6 +272,7 @@ class Door(Item):
         self.bild = PygView.DOOR
         self.color = color
 
+
 class Loot(Item):
     def __init__(self, x, y):
         Item.__init__(self, x, y)
@@ -273,7 +281,6 @@ class Loot(Item):
              "Edelstein", "Heiltrank", "Schild"]
         self.text = random.choice(zeugs)
         self.bild = PygView.LOOT
-
 
 
 class Level(object):
@@ -338,18 +345,13 @@ class Level(object):
                 if type(block).__name__ == "Sign":
                     block.text = self.schilder[block.char]
 
-
-
     def update(self):
         """löscht alle Monster und Fallen die keine hitpoints mehr haben"""
         self.monsters = [m for m in self.monsters if m.hitpoints > 0]
         self.traps = [t for t in self.traps if t.hitpoints > 0]
         self.keys = [k for k in self.keys if not k.carried]
         self.loot = [i for i in self.loot if not i.carried]
-
-    #def ersetze(self, x, y, new="."):
-    #    """ersetzt ein Zeichen in einem Level durch das new Zeichen"""
-    #    self.lines[y] = self.lines[y][:x]+new+self.lines[y][x+1:]
+        self.doors = [d for d in self.doors if not d.open]
 
     def is_monster(self, x, y):
         """testet ob sich an einer stelle ein monster befindet"""
@@ -372,30 +374,17 @@ class Level(object):
                 kampfrunde(player, monster)
                 continue     # Monster würde in player hineinlaufen
             wohin = self.layout[(x+dx, y+dy)]
-            if type(wohin).__name__ in "#T":
-                continue     # Monster würde in Falle oder Mauer laufen
+            if type(wohin).__name__ == "Wall":
+                continue     # Monster würde in Mauer laufen
+            for trap in self.traps:
+                if trap.x == x+dx and trap.y == y+dy:
+                    continue # Monster würde in Falle laufen
+            for door in self.doors:
+                if door.x == x+dx and door.y == y+dy:
+                    continue # Monster würde in Türe laufen
             monster.x += dx
             monster.y += dy
 
-    def paint(self, player):
-        """druckt den Level ohne Monster mit Zeichen"""
-        output = [""]
-        y = 0
-        for line in self.lines:
-            x = 0
-            for char in line:
-                #if x == player.x and y == player.y:
-                #    output[y]+="@"
-                #elif self.is_monster(x, y):
-                #    output[y]+="M"
-                if char in "123456789":
-                    output[y] +="!"
-                else:
-                    output[y] +=char
-                x += 1
-            y += 1
-            output.append("")
-        return output # lines
 
 
 class PygView(object):
@@ -437,9 +426,8 @@ class PygView(object):
         self.status = [""]
 
 
-        self.refresh_background = True
-        self.refresh_removables = True
-
+        #self.refresh_background = True
+        #self.refresh_removables = True
 
     def paint(self):
         x,y = 0, 0
@@ -451,25 +439,35 @@ class PygView(object):
         scrolly = 0
         self.screen.blit(self.background, (scrollx, scrolly))
 
-
+        # ---- paint monsters ---
         for monster in self.level.monsters:
-            self.screen.blit(monster.bild, (monster.x * SIDE, monster.y * SIDE))
-        ### paint player
-        self.screen.blit(self.player.bild, (self.player.x * SIDE, self.player.y * SIDE))
-        line = write(self.status[-1])
-        self.screen.blit(line, (0,y+50))
+            self.screen.blit(monster.bild, (scrollx + monster.x * SIDE, scrolly + monster.y * SIDE))
+        # ---- paint player -----
+        self.screen.blit(self.player.bild, (scrollx + self.player.x * SIDE, scrolly + self.player.y * SIDE))
+        # ---- textbereich schwarz übermalen ---
+        pygame.draw.rect(self.screen, (0,0,0), (0, y * SIDE+50, self.width, self.height - y * SIDE + 50))
+        # ---- player status ----
+        line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} level:{}".format(
+                self.player.hitpoints, len(self.player.keys), self.turns, self.player.x,
+                self.player.y, self.player.z), (0,255,0))
+
+        self.screen.blit(line, (self.width - 800, y* SIDE+50))
+        # ---- paint status messages -----
+        for number in range(-5,0,1):
+               line = write("{}".format(self.status[number]), (0,0,255+40*number))
+               self.screen.blit(line, (0, SIDE* y +50 + 5*50 + number * 50))
 
 
     def run(self):
         """The mainloop---------------------------------------------------"""
         self.clock = pygame.time.Clock() 
         running = True
-        self.status = ["game start"]
+        self.status = ["The game begins!","You enter the dungeon...", "Hint: Avoid traps", "Hint: Battle monsters", "Hint: Plunder!"]
         self.turns = 0
         self.level = self.levels[self.player.z]
         self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
         while running and self.player.hitpoints > 0:
-            self.status = self.status[:50] # only keep the last 50 lines
+            #self.status = self.status[:50] # only keep the last 50 lines
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -492,7 +490,7 @@ class PygView(object):
                         pass # player steht eine runde lang herum
                     elif event.key == pygame.K_LESS:     # "<":                 # ------ level up
                         if self.level.lines[self.player.y][self.player.x] != "<":
-                            self.status = "Du musst erst eine Stiege nach oben finden [<]"
+                            self.status.append("{}: Du musst erst eine Stiege nach oben finden [<]".format(self.turns))
                             break
                         elif self.player.z == 0:
                             print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
@@ -501,49 +499,45 @@ class PygView(object):
                         self.player.z -= 1
                         self.level = self.levels[self.player.z]
                         self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
-                        self.refresh_background = True
+                        #self.refresh_background = True
                     elif event.key == pygame.K_GREATER: #  ">":                  # ------ level down
                         if self.level.lines[self.player.y][self.player.x] != ">":
-                            self.status = "Du musst erst eine Stiege nach unten finden [>]"
+                            self.status.append("{}: Du musst erst eine Stiege nach unten finden [>]".format(self.turns))
                             break
                         self.player.z += 1
                         self.level = self.levels[self.player.z]
                         self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
-                        self.refresh_background = True
+                        #self.refresh_background = True
                     elif event.key == pygame.K_q:                  # q --------- Heiltrank ------------
                             if "Heiltrank" in self.player.rucksack and self.player.rucksack["Heiltrank"] > 0:
                                 self.player.rucksack["Heiltrank"] -= 1
                                 effekt = random.randint(2, 5)
                                 self.player.hitpoints += effekt
-                                self.status = "Du trinkst einen Heiltrank und erhälst {} hitpoints".format(effekt)
+                                self.status.append("{}: Du trinkst einen Heiltrank und erhälst {} hitpoints".format(
+                                                   self.turns, effekt))
                             else:
-                                self.status = "in Deinem Rucksack befindet sich kein Heiltrank. Sammle Loot!"
-
-                    #elif a == "i":                # --------- inventory --------
-                    #    p.zeige_rucksack()
-                    #    wait()
-                    #elif a == "?" or a == "help":  # ---- help -------
-                    # hilfe()
+                                self.status.append("{}: in Deinem Rucksack befindet sich kein Heiltrank. Sammle Loot!".format(
+                                                   self.turns))
 
                     # --------------- new location ----------
                     wohin = self.level.layout[(self.player.x+self.player.dx,self.player.y+self.player.dy)]
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
-                    self.refresh_background = False
+                    #self.refresh_background = False
                     if monster:
                         kampfrunde(self.player, monster)
                         kampfrunde(monster, self.player)
                     # ----- testen ob spieler gegen Wand, Monster oder Tür läuft ----
-                    elif wohin == "#":         # in die Wand gelaufen?
-                        self.status = "aua, nicht in die Wand laufen!"
+                    elif type(wohin).__name__ == "Wall":         # in die Wand gelaufen?
+                        self.status.append("{}: aua, nicht in die Wand laufen!".format(self.turns))
                         self.player.hitpoints -= 1
                     elif wohin == "D":
                         if self.player.keys > 0:
                             self.player.keys -= 1
-                            self.status = "Türe aufgesperrt (1 Schlüssel verbraucht)"
+                            self.status.append("{}: Türe aufgesperrt (1 Schlüssel verbraucht)".format(self.turns))
                             self.level.ersetze(self.player.x+self.player.dx, self.player.y+self.player.dy, ".")
-                            self.refresh_background = True
+                            #self.refresh_background = True
                         else:
-                            self.status = "Aua! Du knallst gegen eine versperrte Türe"
+                            self.status.append("{}: Aua! Du knallst gegen eine versperrte Türe".format(self.turns))
                             self.player.hitpoints -= 1
                     else:
                         self.player.x += self.player.dx
@@ -554,20 +548,20 @@ class PygView(object):
                     #if self.turns == 1:
                     #    self.refresh_removables = True
                     if type(wo).__name__ == "Sign":
-                        self.status = "hier steht: " + wo.text
+                        self.status.append("{}: hier steht: {}".format(self.turns, wo.text))
                     elif type(wo).__name__ == "Stair":
                         if wo.down:
-                            self.status = "Stiege runter: [>] drücken zum runtergehen"
+                            self.status.append("{}: Stiege runter: [>] drücken zum runtergehen".format(self.turns))
                         else:
-                            self.status = "Stiege rauf: [<] drücken zum raufgehen"
+                            self.status.append("{}: Stiege rauf: [<] drücken zum raufgehen".format(self.turns))
                     # --------- liegt etwas  auf dem Boden herum ?
                     for trap in self.level.traps:
                         if trap.x == self.player.x and trap.y == self.player.y:
                             schaden = random.randint(1, 4)
-                            self.status = "aua, in die Falle gelaufen. {} Schaden!".format(schaden)
+                            self.status.append("{}: Aua, in die Falle gelaufen. {} Schaden!".format(self.turns, schaden))
                             self.player.hitpoints -= schaden
                             if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
-                                self.status += " Falle kaputt!"
+                                self.status.append("{}: Falle kaputt!".format(self.turns))
                                 trap.hitpoints = 0
 
                     for key in self.level.keys:
@@ -578,8 +572,11 @@ class PygView(object):
                     for i in self.level.loot:
                         if i.x == self.player.x and i.y == self.player.y:
                             i.carried = True
-                            self.player.loot.append(i)
-
+                            name = type(i).__name__
+                            if name in self.player.rucksack:
+                                self.player.rucksack[name] += 1
+                            else:
+                                self.player.rucksack[name] = 1
 
 
                     # ------------------- level update
@@ -589,8 +586,8 @@ class PygView(object):
 
             #pressedkeys = pygame.key.get_pressed() 
 
-            pygame.display.set_caption("player hp: %i keys: %i, turn %i  press Esc to quit. Fps: %.2f (%i x %i)"%(
-                            self.player.hitpoints, self.player.keys, self.turns, self.clock.get_fps(), self.width, self.height))
+            pygame.display.set_caption("  press Esc to quit. Fps: %.2f (%i x %i)"%(
+                                self.clock.get_fps(), self.width, self.height))
             self.paint()
             pygame.display.flip()          
         # ------------ game over -----------------
@@ -600,10 +597,7 @@ class PygView(object):
            print("Du bist tot")
         self.player.zeige_rucksack()
 
-####
-
-
 
 if __name__ == '__main__':
-    levels = ["level1.txt","level2.txt"]
+    levels = ["level1.txt", "level2.txt"]
     PygView(levels, 1920, 1000, 1, 1, 50).run() # player at 1,1 with 50 hp
