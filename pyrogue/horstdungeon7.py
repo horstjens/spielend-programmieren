@@ -204,7 +204,7 @@ class Player(Monster):
             lines.append("Anzahl, Gegenstand")
             lines.append("==================")
             for ding in self.rucksack:
-                lines.append(self.rucksack[ding], ding)
+                lines.append(str(self.rucksack[ding]) + ".........." + str(ding))
         return lines
 
     def nimm(self, zeug):
@@ -221,6 +221,7 @@ class Level(object):
     def __init__(self, dateiname):
         """liest den dateinamen ein und erzeugt ein Level-Object"""
         self.lines = []
+        self.layout = [] # lines of non-movable stuff
         self.schilder = {}       # schildnummer: schildtext
         self.monsters = []
         self.sichtweite = 10
@@ -325,6 +326,7 @@ class PygView(object):
         PygView.WALL = PygView.WALLS.image_at((0, 0, SIDE, SIDE))
         PygView.SIGN  = PygView.GUI.image_at((SIDE*6,0,SIDE,SIDE))
         PygView.FLOOR  = PygView.FLOORS.image_at((160, SIDE*2 ,SIDE, SIDE))
+        PygView.FLOOR1 = PygView.FLOORS.image_at((192, 162, SIDE, SIDE))
         PygView.TRAP  = PygView.FEAT.image_at((SIDE*1, SIDE*4, SIDE, SIDE))
         PygView.PLAYERBILD = PygView.FIGUREN.image_at((0, 30, SIDE, SIDE), (0, 0, 0))
         PygView.STAIRDOWN = PygView.FEAT.image_at((SIDE*4, SIDE*5, SIDE, SIDE))
@@ -343,9 +345,11 @@ class PygView(object):
 
 
         self.refresh_background = True
+        self.refresh_removables = True
 
 
     def paint(self):
+        x,y = 0, 0
         if self.refresh_background:
             y = 0
             for line in self.level.paint(self.player):
@@ -354,32 +358,46 @@ class PygView(object):
                     if char == "#":
                         self.background.blit(self.WALL, (x,y))
                     elif char == ".":
-                        self.background.blit(self.FLOOR, (x,y))
+                        self.background.blit(random.choice((self.FLOOR, self.FLOOR1)), (x,y))
                     elif char in "123456789":
                         self.background.blit(self.SIGN, (x,y))
                     elif char == "<":
                         self.background.blit(self.STAIRUP, (x,y))
                     elif char == ">":
                         self.background.blit(self.STAIRDOWN, (x,y))
-                    elif char == "T":
-                        self.background.blit(self.TRAP, (x,y))
-                    elif char == "L":
-                        self.background.blit(self.LOOT, (x,y))
-                    elif char == "D":
-                        self.background.blit(self.DOOR, (x,y))
-                    elif char == "k":
-                        self.background.blit(self.KEY, (x,y))
                     x += SIDE
                 y += SIDE
-        line = write(self.status[-1])
-        ##### paint player and monsters over background
+        # ----------------------- blit  background -------------
         scrollx = 0
         scrolly = 0
         self.screen.blit(self.background, (scrollx, scrolly))
+        # repaint removable stuff on the dungeon floor
+        #if self.refresh_removables or self.refresh_background:
+        if True:
+            x,y = 0, 0
+            y = 0
+            for line in self.level.paint(self.player):
+                x = 0
+                for char in line:
+                    if char == "T":
+                        self.screen.blit(self.TRAP, (x,y))
+                    elif char == "L":
+                        self.screen.blit(self.LOOT, (x,y))
+                    elif char == "D":
+                        self.screen.blit(self.DOOR, (x,y))
+                    elif char == "k":
+                        self.screen.blit(self.KEY, (x,y))
+                    x += SIDE
+                y += SIDE
+
+
+
+
         for monster in self.level.monsters:
             self.screen.blit(monster.bild, (monster.x * SIDE, monster.y * SIDE))
         ### paint player
         self.screen.blit(self.player.bild, (self.player.x * SIDE, self.player.y * SIDE))
+        line = write(self.status[-1])
         self.screen.blit(line, (0,y+50))
 
 
@@ -388,15 +406,17 @@ class PygView(object):
         self.clock = pygame.time.Clock() 
         running = True
         self.status = ["game start"]
+        self.turns = 0
+        self.level = self.levels[self.player.z]
+        self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
         while running and self.player.hitpoints > 0:
             self.status = self.status[:50] # only keep the last 50 lines
-            self.level = self.levels[self.player.z]
-            self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False 
                 elif event.type == pygame.KEYDOWN:
+                    self.turns += 1
                     if event.key == pygame.K_ESCAPE:
                         running = False
                     self.player.dx = 0
@@ -414,14 +434,23 @@ class PygView(object):
                     elif event.key == pygame.K_LESS:     # "<":                 # ------ level up
                         if self.level.lines[self.player.y][self.player.x] != "<":
                             self.status = "Du musst erst eine Stiege nach oben finden [<]"
+                            break
                         elif self.player.z == 0:
                             print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
                             running = False
+                            break
                         self.player.z -= 1
+                        self.level = self.levels[self.player.z]
+                        self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
+                        self.refresh_background = True
                     elif event.key == pygame.K_GREATER: #  ">":                  # ------ level down
-                            if self.level.lines[self.player.y][self.player.x] != ">":
-                                self.status = "Du musst erst eine Stiege nach unten finden [>]"
-                            self.player.z += 1
+                        if self.level.lines[self.player.y][self.player.x] != ">":
+                            self.status = "Du musst erst eine Stiege nach unten finden [>]"
+                            break
+                        self.player.z += 1
+                        self.level = self.levels[self.player.z]
+                        self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
+                        self.refresh_background = True
                     elif event.key == pygame.K_q:                  # q --------- Heiltrank ------------
                             if "Heiltrank" in self.player.rucksack and self.player.rucksack["Heiltrank"] > 0:
                                 self.player.rucksack["Heiltrank"] -= 1
@@ -440,6 +469,7 @@ class PygView(object):
                     # --------------- new location ----------
                     wohin = self.level.lines[self.player.y+self.player.dy][self.player.x+self.player.dx]
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
+                    self.refresh_background = False
                     if monster:
                         kampfrunde(self.player, monster)
                         kampfrunde(monster, self.player)
@@ -453,6 +483,7 @@ class PygView(object):
                             self.player.keys -= 1
                             self.status = "Türe aufgesperrt (1 Schlüssel verbraucht)"
                             self.level.ersetze(self.player.x+self.player.dx, self.player.y+self.player.dy, ".")
+                            self.refresh_background = True
                         else:
                             self.status = "Aua! Du knallst gegen eine versperrte Türe"
                             self.player.hitpoints -= 1
@@ -461,6 +492,9 @@ class PygView(object):
                         self.player.y += self.player.dy
                     # ----------------- spieler ist an einer neuen position --------
                     wo = self.level.lines[self.player.y][self.player.x]                # wo bin ich jetzt
+                    self.refresh_removables = False
+                    if self.turns == 1:
+                        self.refresh_removables = True
                     if wo in "123456789":
                         self.status = "hier steht: " + self.level.schilder[wo]
                     elif wo == "T":                           # in die Falle gelaufen?
@@ -470,13 +504,16 @@ class PygView(object):
                         if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
                             self.level.ersetze(self.player.x, self.player.y, ".")
                             self.status += " Falle kaputt!"
+                            self.refresh_removables = True
                     elif wo == "k":                           # schlüssel gefunden?
                         self.status = "Schlüssel gefunden!"
                         self.player.keys += 1
                         self.level.ersetze(self.player.x, self.player.y, ".")
+                        self.refresh_removables = True
                     elif wo == "L":                           # Loot gefunden ?
                         self.player.nimm(loot())
                         self.level.ersetze(self.player.x, self.player.y, ".")
+                        self.refresh_removables = True
                     elif wo == "<":
                         self.status = "Stiege rauf: [<] drücken zum raufgehen"
                     elif wo == ">":
@@ -485,10 +522,11 @@ class PygView(object):
                     self.level.update()                             # tote monster löschen
                     self.level.move_monster(self.player)                      # lebende monster bewegen
 
+
             #pressedkeys = pygame.key.get_pressed() 
 
-            pygame.display.set_caption("player hp: %i keys: %i  press Esc to quit. Fps: %.2f (%i x %i)"%(
-                            self.player.hitpoints, self.player.keys, self.clock.get_fps(), self.width, self.height))
+            pygame.display.set_caption("player hp: %i keys: %i, turn %i  press Esc to quit. Fps: %.2f (%i x %i)"%(
+                            self.player.hitpoints, self.player.keys, self.turns, self.clock.get_fps(), self.width, self.height))
             self.paint()
             pygame.display.flip()          
         # ------------ game over -----------------
