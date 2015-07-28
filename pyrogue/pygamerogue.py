@@ -7,8 +7,6 @@ try:                                   # nur wichtig für python version2
 except NameError:                      # nur wichtig für python version2
     pass                               # nur wichtig für python version2
 
-
-
 """
 name: pygamerogue
 URL: https://github.com/horstjens/spielend-programmieren/tree/master/pyrogue
@@ -27,7 +25,7 @@ SIDE = 32     # constant
 
 
 def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
-    print(msg)
+    #print(msg)
     myfont = pygame.font.SysFont(font, fontsize)
     mytext = myfont.render(msg, True, fontcolor)
     mytext = mytext.convert_alpha()
@@ -360,7 +358,7 @@ class Level(object):
                 return monster
         return False
 
-    def move_monster(self, player):
+    def move_monster(self, player, game):
         """bewegt Monster (NICHT den Player) zufällig (oder gar nicht)"""
         for monster in self.monsters:
             #if monster.name == "Player":
@@ -370,8 +368,10 @@ class Level(object):
             if self.is_monster(x + dx, y + dy):
                 continue
             if x+dx == player.x and y+dy == player.y:
-                kampfrunde(monster, player)
-                kampfrunde(player, monster)
+                #self.status.append("{}: {}".format(self.turns, kampfrunde(monster, self.player)))
+                #self.status.append("{}: {}".format(self.turns, kampfrunde(self.player, monster)))
+                game.status.extend(kampfrunde(monster, player))
+                game.status.extend(kampfrunde(player, monster))
                 continue     # Monster würde in player hineinlaufen
             wohin = self.layout[(x+dx, y+dy)]
             if type(wohin).__name__ == "Wall":
@@ -473,6 +473,7 @@ class PygView(object):
                 if event.type == pygame.QUIT:
                     running = False 
                 elif event.type == pygame.KEYDOWN:
+                    wo = self.level.layout[(self.player.x, self.player.y)]
                     self.turns += 1
                     if event.key == pygame.K_ESCAPE:
                         running = False
@@ -488,25 +489,23 @@ class PygView(object):
                         self.player.dx += 1
                     elif event.key == pygame.K_PERIOD or event.key == pygame.K_RETURN:
                         pass # player steht eine runde lang herum
-                    elif event.key == pygame.K_LESS:     # "<":                 # ------ level up
-                        if self.level.lines[self.player.y][self.player.x] != "<":
-                            self.status.append("{}: Du musst erst eine Stiege nach oben finden [<]".format(self.turns))
+                    elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
+                        if type(wo).__name__ == "Stair":
+                            if  not wo.down:
+                                if self.player.z == 0:
+                                    print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
+                                    running = False
+                                    break
+                                else:
+                                    self.player.z -= 1
+                                    self.level = self.levels[self.player.z]
+                            else:
+                                self.player.z += 1
+                                self.level = self.levels[self.player.z]
+                        else:
+                            self.status.append("{}: Du musst erst eine Stiege nach oben/unten finden [<],[>]".format(self.turns))
                             break
-                        elif self.player.z == 0:
-                            print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
-                            running = False
-                            break
-                        self.player.z -= 1
-                        self.level = self.levels[self.player.z]
-                        self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
-                        #self.refresh_background = True
-                    elif event.key == pygame.K_GREATER: #  ">":                  # ------ level down
-                        if self.level.lines[self.player.y][self.player.x] != ">":
-                            self.status.append("{}: Du musst erst eine Stiege nach unten finden [>]".format(self.turns))
-                            break
-                        self.player.z += 1
-                        self.level = self.levels[self.player.z]
-                        self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
+                        #self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
                         #self.refresh_background = True
                     elif event.key == pygame.K_q:                  # q --------- Heiltrank ------------
                             if "Heiltrank" in self.player.rucksack and self.player.rucksack["Heiltrank"] > 0:
@@ -524,8 +523,10 @@ class PygView(object):
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
                     #self.refresh_background = False
                     if monster:
-                        kampfrunde(self.player, monster)
-                        kampfrunde(monster, self.player)
+                        #self.status.append("{}: {}".format(self.turns, kampfrunde(self.player, monster)))
+                        #self.status.append("{}: {}".format(self.turns, kampfrunde(monster, self.player)))
+                        self.status.extend(kampfrunde(self.player, monster))
+                        self.status.extend(kampfrunde(monster, self.player))
                     # ----- testen ob spieler gegen Wand, Monster oder Tür läuft ----
                     elif type(wohin).__name__ == "Wall":         # in die Wand gelaufen?
                         self.status.append("{}: aua, nicht in die Wand laufen!".format(self.turns))
@@ -581,7 +582,7 @@ class PygView(object):
 
                     # ------------------- level update
                     self.level.update()                             # tote monster löschen
-                    self.level.move_monster(self.player)                      # lebende monster bewegen
+                    self.level.move_monster(self.player, self)                      # lebende monster bewegen
 
 
             #pressedkeys = pygame.key.get_pressed() 
