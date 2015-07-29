@@ -400,7 +400,7 @@ class PygView(object):
 
         PygView.WALLS = Spritesheet("wall.png")     # 32 x 39
         PygView.FLOORS = Spritesheet("floor.png")   # 32 x 29
-        PygView.FIGUREN = Spritesheet("player.png") # 32 x 57
+        PygView.FIGUREN = Spritesheet("player-keanu.png") # 32 x 57
         PygView.GUI = Spritesheet("gui.png")        # 32 x 17
         PygView.FEAT = Spritesheet("feat.png")      # 32 x 16
         PygView.MAIN = Spritesheet("main.png")      # 32 x 29
@@ -412,7 +412,7 @@ class PygView(object):
         PygView.FLOOR  = PygView.FLOORS.image_at((160, SIDE*2 ,SIDE, SIDE))
         PygView.FLOOR1 = PygView.FLOORS.image_at((192, 160, 32, 32))
         PygView.TRAP  = PygView.FEAT.image_at((SIDE*1, SIDE*4, SIDE, SIDE))
-        PygView.PLAYERBILD = PygView.FIGUREN.image_at((150, 639, 32, 32), (0, 0, 0))
+        PygView.PLAYERBILD = PygView.FIGUREN.image_at((111, 1215, 32, 32), (0, 0, 0))
         PygView.STAIRDOWN = PygView.FEAT.image_at((SIDE*4, SIDE*5, SIDE, SIDE))
         PygView.STAIRUP  = PygView.FEAT.image_at((SIDE*5, SIDE*5, SIDE, SIDE))
         PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, SIDE, SIDE), (0, 0, 0))
