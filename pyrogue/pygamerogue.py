@@ -620,4 +620,4 @@ class PygView(object):
 
 if __name__ == '__main__':
     levels = ["level1.txt", "level2.txt"]
-    PygView(levels, 1920, 1000, 1, 1, 50).run() # player at 1,1 with 50 hp
+    PygView(levels, 1920, 1000, 1, 1, 50).run() # 1920x1000 pixel, player start at x=1,y=1 with 50 hp
