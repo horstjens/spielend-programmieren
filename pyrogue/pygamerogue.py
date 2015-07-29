@@ -217,14 +217,6 @@ class Wall(Block):
         self.bild = PygView.WALL
 
 
-class Sign(Block):
-    def __init__(self, char):
-        Block.__init__(self)
-        self.bild = PygView.SIGN
-        self.char = char # number from level source code
-        self.text = "" # the long text of the sign
-
-
 class Stair(Block):
     def __init__(self, direction):
         Block.__init__(self)
@@ -248,12 +240,21 @@ class Item(object):
         self.carried = False # in someone's inventory?
 
 
+class Sign(Item):
+    def __init__(self, x, y, char):
+        Item.__init__(self, x, y)
+        self.bild = PygView.SIGN
+        self.char = char    # number from level source code
+        self.text = ""      # the long text of the sign
+
+
 class Trap(Item):
     def __init__(self, x, y):
         Item.__init__(self, x, y)
         self.level = random.randint(1, 5)
         self.hitpoints = self.level * 2
         self.bild = PygView.TRAP
+
 
 
 class Key(Item):
@@ -266,7 +267,8 @@ class Key(Item):
 class Door(Item):
     def __init__(self, x, y, color="dull"):
         Item.__init__(self, x, y)
-        self.open = False
+        self.locked = True
+        self.closed = True
         self.bild = PygView.DOOR
         self.color = color
 
@@ -288,6 +290,7 @@ class Level(object):
         self.layout = {} # lines of non-movable stuff
         self.schilder = {}       # schildnummer: schildtext
         self.monsters = []
+        self.signs = []
         self.traps = []
         self.doors = []
         self.loot = []
@@ -328,20 +331,19 @@ class Level(object):
                     elif char == ".":
                         self.layout[(x,y)] = Floor()
                     elif char in "123456789":
-                        self.layout[(x,y)] = Sign(char)
+                        self.signs.append(Sign(x,y,char))
+                        self.layout[(x,y)] = Floor()
+
                     elif char == "#":
                         self.layout[(x,y)] = Wall()
                     x += 1
                 y += 1
                 self.width = max(self.width, x)
                 self.depth = max(self.depth, y)
-        # schild texte ersetzten
-        y,x = 0,0
-        for y in range(self.depth):
-            for x in range(self.width):
-                block = self.layout[(x,y)]
-                if type(block).__name__ == "Sign":
-                    block.text = self.schilder[block.char]
+        #schild texte ersetzten, geht erst nachdem level komplett gelesen wurde
+        for sign in self.signs:
+            sign.text = self.schilder[sign.char]
+
 
     def update(self):
         """löscht alle Monster und Fallen die keine hitpoints mehr haben"""
@@ -349,7 +351,7 @@ class Level(object):
         self.traps = [t for t in self.traps if t.hitpoints > 0]
         self.keys = [k for k in self.keys if not k.carried]
         self.loot = [i for i in self.loot if not i.carried]
-        self.doors = [d for d in self.doors if not d.open]
+        self.doors = [d for d in self.doors if d.closed]
 
     def is_monster(self, x, y):
         """testet ob sich an einer stelle ein monster befindet"""
@@ -424,6 +426,7 @@ class PygView(object):
         for filename in levelnames:
             self.levels.append(Level(filename))
         self.status = [""]
+        self.level = self.levels[0]
 
 
         #self.refresh_background = True
@@ -431,9 +434,22 @@ class PygView(object):
 
     def paint(self):
         x,y = 0, 0
+
         for y in range(self.level.depth):
             for x in range(self.level.width):
-                self.background.blit(self.level.layout[(x,y)].bild, (x*SIDE, y*SIDE))
+                self.background.blit(self.level.layout[(x,y)].bild, (x * SIDE, y * SIDE))
+                for sign in [s for s in self.level.signs if s.x == x and s.y ==y]:
+                    self.background.blit(sign.bild, (x * SIDE, y * SIDE))
+                for trap in [t for t in self.level.traps if t.x == x and t.y == y and t.hitpoints >0
+                             and t.visible]:
+                    self.background.blit(trap.bild, (x * SIDE, y * SIDE))
+                for door in [d for d in self.level.doors if d.x == x and d.y == y and d.closed]:
+                    self.background.blit(door.bild, (x * SIDE, y * SIDE))
+                for loot in [l for l in self.level.loot if l.x == x and l.y == y and not l.carried]:
+                    self.background.blit(loot.bild, (x * SIDE, y * SIDE))
+                for key in [k for k in self.level.keys if k.x == x and k.y == y and not k.carried]:
+                    self.background.blit(key.bild, (x * SIDE, y * SIDE))
+
 
         scrollx = 0
         scrolly = 0
@@ -488,10 +504,10 @@ class PygView(object):
                     elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.dx += 1
                     elif event.key == pygame.K_PERIOD or event.key == pygame.K_RETURN:
-                        pass # player steht eine runde lang herum
+                        pass      # player steht eine runde lang herum
                     elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
                         if type(wo).__name__ == "Stair":
-                            if  not wo.down:
+                            if not wo.down:
                                 if self.player.z == 0:
                                     print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
                                     running = False
