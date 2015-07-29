@@ -430,6 +430,9 @@ class PygView(object):
         self.level = self.levels[0]
         self.seconds = 0
         self.turns = 0
+        self.level = self.levels[self.player.z]
+        self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
+        #self.black = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
 
     def paint(self):
         for y in range(self.level.depth):
@@ -446,8 +449,10 @@ class PygView(object):
                     self.background.blit(loot.bild, (x * SIDE, y * SIDE))
                 for key in [k for k in self.level.keys if k.x == x and k.y == y and not k.carried]:
                     self.background.blit(key.bild, (x * SIDE, y * SIDE))
-        self.scrollx = 0
-        self.scrolly = 0
+
+        self.scrollx = self.width / 2 - self.player.x * SIDE
+        self.scrolly = self.height / 2 - self.player.y * SIDE
+        self.screen.fill((0,0,0))
         self.screen.blit(self.background, (self.scrollx, self.scrolly))
 
         # ---- paint monsters ---
@@ -473,8 +478,6 @@ class PygView(object):
         self.clock = pygame.time.Clock() 
         running = True
         self.status = ["The game begins!","You enter the dungeon...", "Hint: Avoid traps", "Hint: Battle monsters", "Hint: Plunder!"]
-        self.level = self.levels[self.player.z]
-        self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
         while running and self.player.hitpoints > 0:
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
