@@ -73,12 +73,18 @@ def kampfrunde(m1, m2):
             waffe = "Faust"
         txt.append("Kampf: {} attackiert {} mit {} für {} Schaden".format(
             m1.name, m2.name, waffe, damage))
+        blocked_damage = 0
         if "Rüstung" in m2.rucksack:
             damage -= schaden+1
+            blocked_damage += 1
             txt.append("Kampf: Rüstung von {} absorbiert einen Schadenspunkt".format(m2.name))
         if "Schild" in m2.rucksack:
             damage -= (schaden-1)+1
+            blocked_damage += 1
             txt.append("Kampf: Schild von {} aborbiert einen Schadenspunkt".format(m2.name))
+        Flytext(m2.x, m2.y, "dmg: {}".format(damage))
+        if blocked_damage > 0:
+            Flytext(m2.x, m2.y+1, "blocked: {}".format(blocked_damage), (0,255,0))
         if damage > 0:
             m2.hitpoints -= damage
             txt.append("Kampf: {} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
@@ -429,11 +435,12 @@ class Flytext(pygame.sprite.Sprite):
         self.image = write(self.text, (self.r, self.g, self.b), 22) # font 22
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
-        self.dy = -30
+        self.dy = -50  # geschwindigkeit mit der text anfangs nach oben fliegt
         self.time = 0
 
     def update(self, seconds):
         self.y += self.dy * seconds
+        self.dy *= 0.96  # langsamer werden
         self.rect.center = (self.x, self.y)
         self.time += seconds
         if self.time > 2.0:
@@ -665,6 +672,7 @@ class PygView(object):
                             else:
                                 self.player.rucksack[i.text] = 1
                             self.status.append("{} Loot gefunden! ({})".format(self.turns, i.text))
+                            Flytext(self.player.x, self.player.y, i.text + " gefunden!", (0,200,0))
 
 
                     # ------------------- level update
