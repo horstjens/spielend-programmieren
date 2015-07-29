@@ -422,22 +422,16 @@ class PygView(object):
         PygView.LOOT  = PygView.MAIN.image_at((SIDE*17,SIDE*21,SIDE,SIDE))
         PygView.KEY = PygView.FIGUREN.image_at((76, 1684,9,25))
         PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32))
-
-
-        self.player = Player(x,y,hp)
+        self.player = Player(x, y, hp)
         self.levels = []
         for filename in levelnames:
             self.levels.append(Level(filename))
         self.status = [""]
         self.level = self.levels[0]
-
-
-        #self.refresh_background = True
-        #self.refresh_removables = True
+        self.seconds = 0
+        self.turns = 0
 
     def paint(self):
-        x,y = 0, 0
-
         for y in range(self.level.depth):
             for x in range(self.level.width):
                 self.background.blit(self.level.layout[(x,y)].bild, (x * SIDE, y * SIDE))
@@ -452,41 +446,36 @@ class PygView(object):
                     self.background.blit(loot.bild, (x * SIDE, y * SIDE))
                 for key in [k for k in self.level.keys if k.x == x and k.y == y and not k.carried]:
                     self.background.blit(key.bild, (x * SIDE, y * SIDE))
-
-
-        scrollx = 0
-        scrolly = 0
-        self.screen.blit(self.background, (scrollx, scrolly))
+        self.scrollx = 0
+        self.scrolly = 0
+        self.screen.blit(self.background, (self.scrollx, self.scrolly))
 
         # ---- paint monsters ---
         for monster in self.level.monsters:
-            self.screen.blit(monster.bild, (scrollx + monster.x * SIDE, scrolly + monster.y * SIDE))
+            self.screen.blit(monster.bild, (self.scrollx + monster.x * SIDE, self.scrolly + monster.y * SIDE))
         # ---- paint player -----
-        self.screen.blit(self.player.bild, (scrollx + self.player.x * SIDE, scrolly + self.player.y * SIDE))
+        self.screen.blit(self.player.bild, (self.scrollx + self.player.x * SIDE, self.scrolly + self.player.y * SIDE))
         # ---- textbereich schwarz übermalen ---
-        pygame.draw.rect(self.screen, (0,0,0), (0, y * SIDE+50, self.width, self.height - y * SIDE + 50))
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, y * SIDE+50, self.width, self.height - y * SIDE + 50))
         # ---- player status ----
         line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} level:{}".format(
                 self.player.hitpoints, len(self.player.keys), self.turns, self.player.x,
-                self.player.y, self.player.z), (0,255,0))
+                self.player.y, self.player.z), (0, 255, 0))
 
-        self.screen.blit(line, (self.width - 800, y* SIDE+50))
+        self.screen.blit(line, (self.width - 800, y * SIDE+50))
         # ---- paint status messages -----
-        for number in range(-5,0,1):
-               line = write("{}".format(self.status[number]), (0,0,255+40*number))
-               self.screen.blit(line, (0, SIDE* y +50 + 5*50 + number * 50))
-
+        for number in range(-5, 0, 1):
+            line = write("{}".format(self.status[number]), (0, 0, 255+40*number))
+            self.screen.blit(line, (0, 20 * y + 400 + 5*30 + number * 30))
 
     def run(self):
         """The mainloop---------------------------------------------------"""
         self.clock = pygame.time.Clock() 
         running = True
         self.status = ["The game begins!","You enter the dungeon...", "Hint: Avoid traps", "Hint: Battle monsters", "Hint: Plunder!"]
-        self.turns = 0
         self.level = self.levels[self.player.z]
         self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
         while running and self.player.hitpoints > 0:
-            #self.status = self.status[:50] # only keep the last 50 lines
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -538,6 +527,7 @@ class PygView(object):
                                                    self.turns))
 
                     # --------------- new location ----------
+                    # wohin: Block (Floor, Wall, Stair)
                     wohin = self.level.layout[(self.player.x+self.player.dx,self.player.y+self.player.dy)]
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
                     #self.refresh_background = False
@@ -546,30 +536,31 @@ class PygView(object):
                         #self.status.append("{}: {}".format(self.turns, kampfrunde(monster, self.player)))
                         self.status.extend(kampfrunde(self.player, monster))
                         self.status.extend(kampfrunde(monster, self.player))
-                    # ----- testen ob spieler gegen Wand, Monster oder Tür läuft ----
+                        self.player.dx, self.player.dy = 0,0
+                    # ----- testen ob spieler gegen Wand
                     elif type(wohin).__name__ == "Wall":         # in die Wand gelaufen?
                         self.status.append("{}: aua, nicht in die Wand laufen!".format(self.turns))
                         self.player.hitpoints -= 1
-                    elif wohin == "D":
-                        if self.player.keys > 0:
-                            self.player.keys -= 1
+                        self.player.dx, self.player.dy = 0,0
+                    for door in [d for d in self.level.doors if d.x == self.player.x+self.player.dx and
+                                 d.y == self.player.y + self.player.dy and d.closed]:
+                        if len(self.player.keys) > 0:
+                            mykey = self.player.keys.pop()
+                            door.closed = False  # aufgesperrt !
                             self.status.append("{}: Türe aufgesperrt (1 Schlüssel verbraucht)".format(self.turns))
-                            self.level.ersetze(self.player.x+self.player.dx, self.player.y+self.player.dy, ".")
-                            #self.refresh_background = True
                         else:
+                            self.player.dx, self.player.dy = 0,0
                             self.status.append("{}: Aua! Du knallst gegen eine versperrte Türe".format(self.turns))
                             self.player.hitpoints -= 1
-                    else:
-                        self.player.x += self.player.dx
-                        self.player.y += self.player.dy
                     # ----------------- spieler ist an einer neuen position --------
+                    self.player.x += self.player.dx
+                    self.player.y += self.player.dy
                     wo = self.level.layout[(self.player.x, self.player.y)]               # wo bin ich jetzt
-                    #self.refresh_removables = False
-                    #if self.turns == 1:
-                    #    self.refresh_removables = True
-                    if type(wo).__name__ == "Sign":
-                        self.status.append("{}: hier steht: {}".format(self.turns, wo.text))
-                    elif type(wo).__name__ == "Stair":
+                    #if type(wo).__name__ == "Sign":
+                    for sign in self.level.signs:
+                        if sign.x == self.player.x and sign.y == self.player.y:
+                            self.status.append("{}: hier steht: {}".format(self.turns, sign.text))
+                    if type(wo).__name__ == "Stair":
                         if wo.down:
                             self.status.append("{}: Stiege runter: [>] drücken zum runtergehen".format(self.turns))
                         else:
