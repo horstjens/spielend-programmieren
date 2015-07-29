@@ -57,10 +57,10 @@ def hilfe():
 
 
 def kampfrunde(m1, m2):
-    """ Kampf gegen Monster Object"""
+    """Eine Kampfrunde (Schlag). Beste Waffe bzw. beste Rüstung hat Priorität"""
     txt = []
     if m1.hitpoints > 0 and m2.hitpoints > 0:
-        txt.append("{} ({} hp) schlägt nach {} ({} hp)".format(m1.name, m1.hitpoints, m2.name, m2.hitpoints))
+        txt.append("Kampf: {} ({} hp) schlägt nach {} ({} hp)".format(m1.name, m1.hitpoints, m2.name, m2.hitpoints))
         schaden = m1.level
         if "Schwert" in m1.rucksack:      # and rucksack["Waffe"] >0:
             damage = random.randint(schaden, schaden+3)
@@ -71,29 +71,29 @@ def kampfrunde(m1, m2):
         else:
             damage = random.randint(schaden, schaden+1)
             waffe = "Faust"
-        txt.append("{} attackiert {} mit {} für {} Schaden".format(
+        txt.append("Kampf: {} attackiert {} mit {} für {} Schaden".format(
             m1.name, m2.name, waffe, damage))
         if "Rüstung" in m2.rucksack:
             damage -= schaden+1
-            txt.append("Rüstung von {} absorbiert einen Schadenspunkt".format(m2.name))
+            txt.append("Kampf: Rüstung von {} absorbiert einen Schadenspunkt".format(m2.name))
         if "Schild" in m2.rucksack:
             damage -= (schaden-1)+1
-            txt.append("Schild von {} aborbiert einen Schadenspunkt".format(m2.name))
+            txt.append("Kampf: Schild von {} aborbiert einen Schadenspunkt".format(m2.name))
         if damage > 0:
             m2.hitpoints -= damage
-            txt.append("{} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
+            txt.append("Kampf: {} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
             if m2.hitpoints < 1:
                 
                 exp = random.randint(7, 10)
                 m1.xp += exp
-                txt.append("{} hat keine Hitpoints mehr, {} bekommt {} Xp".format(m2.name, m1.name, exp))
+                txt.append("Kampf: {} hat keine Hitpoints mehr, {} bekommt {} Xp".format(m2.name, m1.name, exp))
                 if m1.xp >= 100:
-                    txt.append("{} ist ein Level aufgestiegen".format(m1.name))
+                    txt.append("Kampf: {} ist ein Level aufgestiegen".format(m1.name))
                     m1.level += 1
                     m1.xp = 0
                     m1.hitpoints+=m1.level+random.randint(schaden+6, schaden+9)
         else:
-            txt.append("{} bleibt unverletzt".format(m2.name))
+            txt.append("Kampf: {} bleibt unverletzt".format(m2.name))
     return txt
 
 class Spritesheet(object):
@@ -419,16 +419,16 @@ class PygView(object):
         PygView.WALL1 = PygView.WALLS.image_at((34, 0, 32, 32))
         PygView.WALL2 = PygView.WALLS.image_at((68, 0, 32, 32))
 #        PygView.SIGN  = PygView.GUI.image_at((SIDE*6,0,SIDE,SIDE))
-        PygView.FLOOR  = PygView.FLOORS.image_at((160, SIDE*2 ,SIDE, SIDE))
+        PygView.FLOOR  = PygView.FLOORS.image_at((160, SIDE*2, SIDE, SIDE))
         PygView.FLOOR1 = PygView.FLOORS.image_at((192, 160, 32, 32))
         PygView.TRAP  = PygView.FEAT.image_at((30, 128, 32, 32), (0, 0, 0))
         PygView.PLAYERBILD = PygView.FIGUREN.image_at((111, 1215, 32, 32), (0, 0, 0))
         PygView.STAIRDOWN = PygView.FEAT.image_at((SIDE*4, SIDE*5, SIDE, SIDE))
         PygView.STAIRUP  = PygView.FEAT.image_at((SIDE*5, SIDE*5, SIDE, SIDE))
         PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, SIDE, SIDE), (0, 0, 0))
-        PygView.DOOR  = PygView.FEAT.image_at((SIDE*2,SIDE,SIDE,SIDE))
+        PygView.DOOR  = PygView.FEAT.image_at((SIDE*2, SIDE, SIDE, SIDE))
         PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
-        PygView.KEY = PygView.FIGUREN.image_at((54, 1682 ,32 ,32), (0, 0, 0))
+        PygView.KEY = PygView.FIGUREN.image_at((54, 1682, 32, 32), (0, 0, 0))
         PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32), (0, 0, 0))
         self.player = Player(x, y, xp, level, hp)
         self.levels = []
@@ -441,6 +441,8 @@ class PygView(object):
         self.level = self.levels[self.player.z]
         self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
         #self.black = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
+        self.scrollx = 0
+        self.scrolly = 0
 
     def paint(self):
         for y in range(self.level.depth):
@@ -460,7 +462,7 @@ class PygView(object):
         # Scrolling: der spieler wird immer in der Mitte vom Screen geblittet
         self.scrollx = self.width / 2 - self.player.x * SIDE
         self.scrolly = self.height / 2 - self.player.y * SIDE
-        self.screen.fill((0,0,0))  # bildschirm löschen mit schwarzer Farbe
+        self.screen.fill((0, 0, 0))  # bildschirm löschen mit schwarzer Farbe
         self.screen.blit(self.background, (self.scrollx, self.scrolly))
 
         # ---- paint monsters ---
@@ -469,23 +471,28 @@ class PygView(object):
         # ---- paint player -----
         self.screen.blit(self.player.bild, (self.scrollx + self.player.x * SIDE, self.scrolly + self.player.y * SIDE))
         # ---- textbereich schwarz übermalen ---
-        pygame.draw.rect(self.screen, (0, 0, 0), (0, y * SIDE+50, self.width, self.height - y * SIDE + 50))
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, self.height - 200, self.width, 200))    # Textbereich ist 200 px hoch
         # ---- player status ----
         line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} Ebene:{} xp: {} Level: {}".format(
                 self.player.hitpoints, len(self.player.keys), self.turns, self.player.x,
                 self.player.y, self.player.z, self.player.xp, self.player.level), (0, 255, 0))
 
-        self.screen.blit(line, (self.width - 1000, y * SIDE+50))
-        # ---- paint status messages -----
-        for number in range(-5, 0, 1):
-            line = write("{}".format(self.status[number]), (0, 0, 255+40*number))
-            self.screen.blit(line, (0, 20 * y + 400 + 5*30 + number * 30))
+        self.screen.blit(line, (self.width / 2, self.height - 200))
+        # ---- paint status messages ----- start 200 pixel from screen bottom
+        for number in range(-6, 0, 1):
+            if self.status[number][:6] == "Kampf:":
+                r, g, b = 255, 0, 255
+            else:
+                r, g, b = 0, 0, 255
+            line = write("{}".format(self.status[number]), (r, g, b+30*number))  # Farbe wird heller
+            self.screen.blit(line, (0, self.height + number * 30))
 
     def run(self):
         """The mainloop---------------------------------------------------"""
         self.clock = pygame.time.Clock() 
         running = True
-        self.status = ["The game begins!","You enter the dungeon...", "Hint: Avoid traps", "Hint: Battle monsters", "Hint: Plunder!"]
+        self.status = ["The game begins!", "You enter the dungeon...", "Hint: Avoid traps",
+                       "Hint: Battle monsters", "Hint: Plunder!", "press ? for help"]
         while running and self.player.hitpoints > 0:
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
@@ -493,6 +500,7 @@ class PygView(object):
                     running = False 
                 elif event.type == pygame.KEYDOWN:
                     wo = self.level.layout[(self.player.x, self.player.y)]
+                    self.status.append("Turn {}".format(self.turns))
                     self.turns += 1
                     if event.key == pygame.K_ESCAPE:
                         running = False
@@ -534,7 +542,7 @@ class PygView(object):
                                 self.status.append("{}: Du trinkst einen Heiltrank und erhälst {} hitpoints".format(
                                                    self.turns, effekt))
                             else:
-                                self.status.append("{}: in Deinem Rucksack befindet sich kein Heiltrank. Sammle Loot!".format(
+                                self.status.append("{}: In Deinem Rucksack befindet sich kein Heiltrank. Sammle Loot!".format(
                                                    self.turns))
 
                     # --------------- new location ----------
