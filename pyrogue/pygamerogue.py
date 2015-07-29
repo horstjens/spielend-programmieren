@@ -404,24 +404,24 @@ class PygView(object):
         PygView.FLOORS = Spritesheet("floor.png")   # 32 x 29
         PygView.FIGUREN = Spritesheet("player-keanu.png") # 32 x 57
         PygView.GUI = Spritesheet("gui.png")        # 32 x 17
-        PygView.FEAT = Spritesheet("feat.png")      # 32 x 16
-        PygView.MAIN = Spritesheet("main.png")      # 32 x 29
+        PygView.FEAT = Spritesheet("feat-keanu.png")      # 32 x 16
+        PygView.MAIN = Spritesheet("main-keanu.png")      # 32 x 29
         
         PygView.WALL = PygView.WALLS.image_at((0, 0, 34, 32)) #x oben links, y oben links, höhe, teife
         PygView.WALL1 = PygView.WALLS.image_at((34, 0, 32, 32))
         PygView.WALL2 = PygView.WALLS.image_at((68, 0, 32, 32))
-        PygView.SIGN  = PygView.GUI.image_at((SIDE*6,0,SIDE,SIDE))
+#        PygView.SIGN  = PygView.GUI.image_at((SIDE*6,0,SIDE,SIDE))
         PygView.FLOOR  = PygView.FLOORS.image_at((160, SIDE*2 ,SIDE, SIDE))
         PygView.FLOOR1 = PygView.FLOORS.image_at((192, 160, 32, 32))
-        PygView.TRAP  = PygView.FEAT.image_at((SIDE*1, SIDE*4, SIDE, SIDE))
+        PygView.TRAP  = PygView.FEAT.image_at((30, 128, 32, 32), (0, 0, 0))
         PygView.PLAYERBILD = PygView.FIGUREN.image_at((111, 1215, 32, 32), (0, 0, 0))
         PygView.STAIRDOWN = PygView.FEAT.image_at((SIDE*4, SIDE*5, SIDE, SIDE))
         PygView.STAIRUP  = PygView.FEAT.image_at((SIDE*5, SIDE*5, SIDE, SIDE))
         PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, SIDE, SIDE), (0, 0, 0))
         PygView.DOOR  = PygView.FEAT.image_at((SIDE*2,SIDE,SIDE,SIDE))
-        PygView.LOOT  = PygView.MAIN.image_at((SIDE*17,SIDE*21,SIDE,SIDE))
-        PygView.KEY = PygView.FIGUREN.image_at((76, 1684,9,25))
-        PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32))
+        PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
+        PygView.KEY = PygView.FIGUREN.image_at((54, 1682 ,32 ,32), (0, 0, 0))
+        PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32), (0, 0, 0))
 
 
         self.player = Player(x,y,hp)
