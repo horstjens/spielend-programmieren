@@ -236,7 +236,7 @@ class Item(object):
         self.y = y
         self.visible = True
         self.hitpoints = 1
-        self.bild = None
+        self.bild = PygView.LOOT  # wird überschrieben
         self.carried = False # in someone's inventory?
 
 
@@ -276,12 +276,9 @@ class Door(Item):
 class Loot(Item):
     def __init__(self, x, y):
         Item.__init__(self, x, y)
-        zeugs = ["Müll", "Knochen", "Münze", "Taschenmesser", "Stoffreste",
+        self.text = random.choice(["Müll", "Knochen", "Münze", "Taschenmesser", "Stoffreste",
              "Essbesteck", "Spielzeug", "Schwert", "Rüstung",
-             "Edelstein", "Heiltrank", "Schild"]
-        self.text = random.choice(zeugs)
-        self.bild = PygView.LOOT
-
+             "Edelstein", "Heiltrank", "Schild"])
 
 class Level(object):
     def __init__(self, dateiname):
@@ -308,7 +305,7 @@ class Level(object):
                     continue
                 x = 0
                 for char in line[:-1]:
-                    print("xy:",x,y)
+                    #print("xy:",x,y)
                     if char == "M":
                         self.monsters.append(Monster(x, y, 0))
                         self.layout[(x,y)] = Floor()
@@ -449,10 +446,10 @@ class PygView(object):
                     self.background.blit(loot.bild, (x * SIDE, y * SIDE))
                 for key in [k for k in self.level.keys if k.x == x and k.y == y and not k.carried]:
                     self.background.blit(key.bild, (x * SIDE, y * SIDE))
-
+        # Scrolling: der spieler wird immer in der Mitte vom Screen geblittet
         self.scrollx = self.width / 2 - self.player.x * SIDE
         self.scrolly = self.height / 2 - self.player.y * SIDE
-        self.screen.fill((0,0,0))
+        self.screen.fill((0,0,0))  # bildschirm löschen mit schwarzer Farbe
         self.screen.blit(self.background, (self.scrollx, self.scrolly))
 
         # ---- paint monsters ---
@@ -582,15 +579,16 @@ class PygView(object):
                         if key.x == self.player.x and key.y == self.player.y:
                             key.carried = True
                             self.player.keys.append(key)
+                            self.status.append("{} Schlüssel gefunden".format(self.turns))
 
                     for i in self.level.loot:
-                        if i.x == self.player.x and i.y == self.player.y:
+                        if i.x == self.player.x and i.y == self.player.y and not i.carried:
                             i.carried = True
-                            name = type(i).__name__
-                            if name in self.player.rucksack:
-                                self.player.rucksack[name] += 1
+                            if i.text in self.player.rucksack:
+                                self.player.rucksack[i.text] += 1
                             else:
-                                self.player.rucksack[name] = 1
+                                self.player.rucksack[i.text] = 1
+                            self.status.append("{} Loot gefunden! ({})".format(self.turns, i.text))
 
 
                     # ------------------- level update
