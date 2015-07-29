@@ -61,30 +61,40 @@ def kampfrunde(m1, m2):
     txt = []
     if m1.hitpoints > 0 and m2.hitpoints > 0:
         txt.append("{} ({} hp) schlägt nach {} ({} hp)".format(m1.name, m1.hitpoints, m2.name, m2.hitpoints))
+        schaden = m1.level
         if "Schwert" in m1.rucksack:      # and rucksack["Waffe"] >0:
-            damage = random.randint(1, 4)
+            damage = random.randint(schaden, schaden+3)
             waffe = "Schwert"
         elif "Taschenmesser" in m1.rucksack:
-            damage = random.randint(1, 3)
+            damage = random.randint(schaden+1, schaden+2)
             waffe = "Taschenmesser"
         else:
-            damage = random.randint(1, 2)
+            damage = random.randint(schaden, schaden+1)
             waffe = "Faust"
         txt.append("{} attackiert {} mit {} für {} Schaden".format(
             m1.name, m2.name, waffe, damage))
         if "Rüstung" in m2.rucksack:
-            damage -= 1
+            damage -= schaden+1
             txt.append("Rüstung von {} absorbiert einen Schadenspunkt".format(m2.name))
         if "Schild" in m2.rucksack:
-            damage -= 1
+            damage -= (schaden-1)+1
             txt.append("Schild von {} aborbiert einen Schadenspunkt".format(m2.name))
         if damage > 0:
             m2.hitpoints -= damage
             txt.append("{} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
+            if m2.hitpoints < 1:
+                
+                exp = random.randint(7, 10)
+                m1.xp += exp
+                txt.append("{} hat keine Hitpoints mehr, {} bekommt {} Xp".format(m2.name, m1.name, exp))
+                if m1.xp >= 100:
+                    txt.append("{} ist ein Level aufgestiegen".format(m1.name))
+                    m1.level += 1
+                    m1.xp = 0
+                    m1.hitpoints+=m1.level+random.randint(schaden+6, schaden+9)
         else:
             txt.append("{} bleibt unverletzt".format(m2.name))
     return txt
-
 
 class Spritesheet(object):
     """ from pygame.org
@@ -131,9 +141,11 @@ class Spritesheet(object):
 
 
 class Monster(object):
-    def __init__(self,x,y,hp, bild=""):
+    def __init__(self ,x ,y ,xp ,level ,hp ,bild=""):
         self.x = x
         self.y = y
+        self.xp = xp
+        self.level = level
         if hp == 0:
             self.hitpoints = random.randint(10,20)
         else:
@@ -167,8 +179,8 @@ class Boss(Monster):
 
 
 class Player(Monster):
-    def __init__(self, x, y, hp=0, bild = ""):
-        Monster.__init__(self, x, y, hp, bild)
+    def __init__(self, x, y, xp ,level, hp=0, bild = ""):
+        Monster.__init__(self, x, y, xp, level, hp, bild)
         self.name = "Player"
         self.rucksack = {}
         self.z = 0
@@ -178,7 +190,6 @@ class Player(Monster):
         else:
             self.hitpoints = hp
         self.bild = PygView.PLAYERBILD
-
     def ai(self):
         return (0,0)
 
@@ -307,7 +318,7 @@ class Level(object):
                 for char in line[:-1]:
                     #print("xy:",x,y)
                     if char == "M":
-                        self.monsters.append(Monster(x, y, 0))
+                        self.monsters.append(Monster(x, y,0, 1, 0))
                         self.layout[(x,y)] = Floor()
                     elif char == "T":
                         self.traps.append(Trap(x,y))
@@ -388,7 +399,7 @@ class Level(object):
 
 class PygView(object):
 
-    def __init__(self, levelnames, width=640, height=400, x=1,y=1, hp=50 ):
+    def __init__(self, levelnames, width=640, height=400, x=1,y=1, xp=0, level=1, hp=50,):
         pygame.init()
 
         self.width = width
@@ -419,7 +430,7 @@ class PygView(object):
         PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
         PygView.KEY = PygView.FIGUREN.image_at((54, 1682 ,32 ,32), (0, 0, 0))
         PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32), (0, 0, 0))
-        self.player = Player(x, y, hp)
+        self.player = Player(x, y, xp, level, hp)
         self.levels = []
         for filename in levelnames:
             self.levels.append(Level(filename))
@@ -460,11 +471,11 @@ class PygView(object):
         # ---- textbereich schwarz übermalen ---
         pygame.draw.rect(self.screen, (0, 0, 0), (0, y * SIDE+50, self.width, self.height - y * SIDE + 50))
         # ---- player status ----
-        line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} level:{}".format(
+        line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} Ebene:{} xp: {} Level: {}".format(
                 self.player.hitpoints, len(self.player.keys), self.turns, self.player.x,
-                self.player.y, self.player.z), (0, 255, 0))
+                self.player.y, self.player.z, self.player.xp, self.player.level), (0, 255, 0))
 
-        self.screen.blit(line, (self.width - 800, y * SIDE+50))
+        self.screen.blit(line, (self.width - 1000, y * SIDE+50))
         # ---- paint status messages -----
         for number in range(-5, 0, 1):
             line = write("{}".format(self.status[number]), (0, 0, 255+40*number))
@@ -612,4 +623,4 @@ class PygView(object):
 
 if __name__ == '__main__':
     levels = ["level1.txt", "level2.txt"]
-    PygView(levels, 1920, 1000, 1, 1, 50).run() # 1920x1000 pixel, player start at x=1,y=1 with 50 hp
+    PygView(levels, 1920, 1000, 1, 1, 99, 100, 50).run() # 1920x1000 pixel, player start at x=1, y=1, with 0 xp, 1 level and 50 hp
