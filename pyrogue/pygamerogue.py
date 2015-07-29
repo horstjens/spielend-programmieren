@@ -83,15 +83,12 @@ def kampfrunde(m1, m2):
             m2.hitpoints -= damage
             txt.append("Kampf: {} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
             if m2.hitpoints < 1:
-                
                 exp = random.randint(7, 10)
                 m1.xp += exp
                 txt.append("Kampf: {} hat keine Hitpoints mehr, {} bekommt {} Xp".format(m2.name, m1.name, exp))
-                if m1.xp >= 100:
-                    txt.append("Kampf: {} ist ein Level aufgestiegen".format(m1.name))
-                    m1.level += 1
-                    m1.xp = 0
-                    m1.hitpoints+=m1.level+random.randint(schaden+6, schaden+9)
+                line = m1.check_levelup()
+                if line:
+                    txt.append(line)
         else:
             txt.append("Kampf: {} bleibt unverletzt".format(m2.name))
     return txt
@@ -164,6 +161,9 @@ class Monster(object):
             if random.random() < 0.1:  # 10% Chance
                 self.rucksack[z] = 1
 
+    def check_levelup(self):
+        return ""
+
     def ai(self):
         """returns dx, dy: where the monster wants to go"""
         dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
@@ -190,6 +190,26 @@ class Player(Monster):
         else:
             self.hitpoints = hp
         self.bild = PygView.PLAYERBILD
+
+    def levelup(self):
+        self.level += 1
+        self.hitpoints += self.level* 2 + random.randint(1,6)
+
+    def check_levelup(self):
+        if self.xp >= 100 and self.level == 0:
+            self.levelup()
+            return "{} erreicht Level 1: Page".format(self.name)
+        elif self.xp >= 200 and self.level == 1:
+            self.levelup()
+            return "{} erreicht Level 2: Knappe".format(self.name)
+        elif self.xp >= 400 and self.level == 2:
+            self.levelup()
+            return "{} erreicht Level 3: Ritter".format(self.name)
+        else:
+            return ""
+
+
+
     def ai(self):
         return (0,0)
 
@@ -395,9 +415,36 @@ class Level(object):
             monster.x += dx
             monster.y += dy
 
+class Flytext(pygame.sprite.Sprite):
+    def __init__(self, x, y, text="hallo", rgb=(255,0,0), blockxy = True):
+        self.text = text
+        self.r, self.g, self.b = rgb[0], rgb[1], rgb[2]
+        self._layer = 7
+        #self.groups = flytextgroup, allgroup
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        if blockxy:
+            self.x, self.y = PygView.scrollx + x * SIDE, PygView.scrolly + y * SIDE
+        else:
+            self.x, self.y = x, y
+        self.image = write(self.text, (self.r, self.g, self.b), 22) # font 22
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.x, self.y)
+        self.dy = -30
+        self.time = 0
+
+    def update(self, seconds):
+        self.y += self.dy * seconds
+        self.rect.center = (self.x, self.y)
+        self.time += seconds
+        if self.time > 2.0:
+            self.kill()
+
+
 
 
 class PygView(object):
+    scrollx = 0  # class variables, can be read from everywhere
+    scrolly = 0
 
     def __init__(self, levelnames, width=640, height=400, x=1,y=1, xp=0, level=1, hp=50,):
         pygame.init()
@@ -441,8 +488,11 @@ class PygView(object):
         self.level = self.levels[self.player.z]
         self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
         #self.black = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
-        self.scrollx = 0
-        self.scrolly = 0
+
+
+        self.flytextgroup = pygame.sprite.Group()
+        self.allgroup = pygame.sprite.LayeredUpdates() # sprite group with layers
+        Flytext.groups = self.flytextgroup, self.allgroup
 
     def paint(self):
         for y in range(self.level.depth):
@@ -460,26 +510,28 @@ class PygView(object):
                 for key in [k for k in self.level.keys if k.x == x and k.y == y and not k.carried]:
                     self.background.blit(key.bild, (x * SIDE, y * SIDE))
         # Scrolling: der spieler wird immer in der Mitte vom Screen geblittet
-        self.scrollx = self.width / 2 - self.player.x * SIDE
-        self.scrolly = self.height / 2 - self.player.y * SIDE
+        PygView.scrollx = self.width / 2 - self.player.x * SIDE
+        PygView.scrolly = self.height / 2 - self.player.y * SIDE
         self.screen.fill((0, 0, 0))  # bildschirm löschen mit schwarzer Farbe
-        self.screen.blit(self.background, (self.scrollx, self.scrolly))
-
+        self.screen.blit(self.background, (PygView.scrollx, PygView.scrolly))
+        # ----- GUI für textbereich
+        gui_height = 250
         # ---- paint monsters ---
         for monster in self.level.monsters:
-            self.screen.blit(monster.bild, (self.scrollx + monster.x * SIDE, self.scrolly + monster.y * SIDE))
+            self.screen.blit(monster.bild, (PygView.scrollx + monster.x * SIDE, PygView.scrolly + monster.y * SIDE))
         # ---- paint player -----
-        self.screen.blit(self.player.bild, (self.scrollx + self.player.x * SIDE, self.scrolly + self.player.y * SIDE))
+        self.screen.blit(self.player.bild, (PygView.scrollx + self.player.x * SIDE, PygView.scrolly + self.player.y * SIDE))
         # ---- textbereich schwarz übermalen ---
-        pygame.draw.rect(self.screen, (0, 0, 0), (0, self.height - 200, self.width, 200))    # Textbereich ist 200 px hoch
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, self.height - gui_height, self.width, gui_height))
+        # Textbereich ist 250 px hoch
         # ---- player status ----
         line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} Ebene:{} xp: {} Level: {}".format(
                 self.player.hitpoints, len(self.player.keys), self.turns, self.player.x,
                 self.player.y, self.player.z, self.player.xp, self.player.level), (0, 255, 0))
 
-        self.screen.blit(line, (self.width / 2, self.height - 200))
+        self.screen.blit(line, (self.width / 2, self.height - gui_height))
         # ---- paint status messages ----- start 200 pixel from screen bottom
-        for number in range(-6, 0, 1):
+        for number in range(-7, 0, 1):
             if self.status[number][:6] == "Kampf:":
                 r, g, b = 255, 0, 255
             else:
@@ -487,12 +539,14 @@ class PygView(object):
             line = write("{}".format(self.status[number]), (r, g, b+30*number))  # Farbe wird heller
             self.screen.blit(line, (0, self.height + number * 30))
 
+
     def run(self):
         """The mainloop---------------------------------------------------"""
         self.clock = pygame.time.Clock() 
         running = True
         self.status = ["The game begins!", "You enter the dungeon...", "Hint: Avoid traps",
-                       "Hint: Battle monsters", "Hint: Plunder!", "press ? for help"]
+                       "Hint: Battle monsters", "Hint: Plunder!", "press ? for help", "good luck!"]
+
         while running and self.player.hitpoints > 0:
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
@@ -516,6 +570,9 @@ class PygView(object):
                         self.player.dx += 1
                     elif event.key == pygame.K_PERIOD or event.key == pygame.K_RETURN:
                         pass      # player steht eine runde lang herum
+                    #elif event.key == pygame.K_t:
+                        # test flytext at player pos
+                    #    Flytext(self.player.x, self.player.y, "player test")
                     elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
                         if type(wo).__name__ == "Stair":
                             if not wo.down:
@@ -620,7 +677,13 @@ class PygView(object):
             pygame.display.set_caption("  press Esc to quit. Fps: %.2f (%i x %i)"%(
                                 self.clock.get_fps(), self.width, self.height))
             self.paint()
-            pygame.display.flip()          
+            #self.allgroup.clear(self.screen, self.background)
+            self.allgroup.update(self.seconds)
+            self.allgroup.draw(self.screen)
+
+              #  ------- draw the sprites ------
+            pygame.display.flip()
+            #print("scrollxy", PygView.scrollx, PygView.scrolly)
         # ------------ game over -----------------
         pygame.quit()
         print("Game Over. Hitpoints: {}".format(self.player.hitpoints))
