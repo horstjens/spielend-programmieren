@@ -17,7 +17,7 @@ descr: a rogue game using python + pygame. graphics from dungeon crawl stone sou
 """
 
 #
-import pygame, random, os, time
+import pygame, random, os, sys
 
 
 def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
@@ -28,28 +28,32 @@ def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
     return mytext
 
 
-def hilfe():
-    """zeigt hilfstext, wartet auf ENTER Taste"""
-    txt = []
-    txt.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-    txt.append("Befehle:")
-    txt.append("[w] [a] [s] [d]......steuere den Spieler")
-    txt.append("[<] [>]..............Level rauf / Level runter")
-    txt.append("[i]..................zeige Rucksack (inventory)")
-    txt.append("[quit] [exit] [Q]....Spiel verlassen")
-    txt.append("[?] [help]...........diesen Hilfstext anzeigen")
-    txt.append("[q]..................Heiltrank trinken (quaff potion")
-    txt.append("[Enter]..............eine Runde warten")
-    txt.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-    txt.append("Legende:")
-    txt.append("[#]..................Mauer")
-    txt.append("[.]..................Boden")
-    txt.append("[M]..................Monster")
-    txt.append("[k]..................Schlüssel (key)")
-    txt.append("[L]..................Gegenstand (loot)")
-    txt.append("[D]..................Türe (door)")
-    txt.append("[!]..................Schild")
-    txt.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+def display_textlines(lines, screen, color=(0,0,255)):
+    """zeigt (scrollbare) Text linien, wartet auf ENTER Taste"""
+
+    offset = 0
+    pygame.display.set_caption("Press ENTER")
+    while True:
+        screen.fill((0,0,0))
+        y = 0
+        for textline in lines:
+            line = write(textline, color, 24 )
+            screen.blit(line,(20, offset + 14 * y ))
+            y += 1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type != pygame.KEYDOWN:
+                continue
+            elif event.key == pygame.K_DOWN:
+                offset -= 14
+            elif event.key == pygame.K_UP:
+                offset += 14
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                return
+        pygame.display.flip()
+
 
 
 def kampfrunde(m1, m2):
@@ -99,29 +103,58 @@ def kampfrunde(m1, m2):
 
 def load_sound(file):
     if not pygame.mixer:
-        return No_sound()
+        return NoSound()
     file = os.path.join("sounds", file)
     try:
         sound = pygame.mixer.Sound(file)
         return sound
     except pygame.error:
         print('Warning, unable to load,', file)
-    return No_sound()
+    return NoSound()
 
 
 def load_music(file):
     if not pygame.mixer:
-        return No_sound()
+        return NoSound()
     file = os.path.join("music", file)
     try:
         music = pygame.mixer.music.load(file)
         return music
     except pygame.error:
         print('Warning, unable to load,',file)
-    return No_sound()
+    return NoSound()
 
 
-class No_sound:
+def ask(question, x, y, screen):   # from pygame newsgroup
+    """ask(screen, question) -> answer"""
+    pygame.font.init()
+    text = ""
+    line = write(question)
+    screen.blit(line, (x, y))
+    pygame.display.flip()
+    while True:
+        pygame.time.wait(50) # wartet 50 millisekunden?
+        #event = pygame.event.poll()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type != pygame.KEYDOWN:
+                continue
+            elif event.key == pygame.K_BACKSPACE:
+                text = text[0:-1]
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                return text
+            elif event.key == pygame.K_ESCAPE:
+                return "Dorftrottel"
+            elif event.key <= 127:
+                text += chr(event.key)
+        line = write(question + ": " + text)
+        screen.blit(line, (x, y))
+        pygame.display.flip()
+
+
+class NoSound(object):
     """wird von der Funktion load_sound benötigt, falls die Soundausgabe nicht funktioniert"""
     def play(self):
         pass
@@ -177,6 +210,7 @@ class Monster(object):
         self.y = y
         self.xp = xp
         self.level = level   # normalerweise startet mit level 1
+        self.rank = ""
         if hp == 0:
             self.hitpoints = random.randint(10,20)
         else:
@@ -195,7 +229,7 @@ class Monster(object):
             if random.random() < 0.1:  # 10% Chance
                 self.rucksack[z] = 1
 
-    def check_levelup(self):
+    def check_levelup(self, rank="nobody"):
         return ""
 
     def ai(self):
@@ -216,6 +250,7 @@ class Player(Monster):
     def __init__(self, x, y, xp ,level, hp=0, bild= ""):
         Monster.__init__(self, x, y, xp, level, hp, bild)
         self.name = "Player"
+        self.rank = "Zivilist"
         self.rucksack = {}
         self.z = 0
         self.keys = []
@@ -228,22 +263,21 @@ class Player(Monster):
         else:
             self.bild = bild
 
-    def levelup(self):
+    def levelup(self, rank="Nobody"):
         self.level += 1
         self.hitpoints += self.level* 2 + random.randint(1,6)
+        self.rank = rank
 
     def check_levelup(self):
         if self.xp >= 100 and self.level == 1:
-            self.levelup()
-            return "{} erreicht Level 1: Page".format(self.name)
+            self.levelup("Page")  # level wird 2
         elif self.xp >= 200 and self.level == 2:
-            self.levelup()
-            return "{} erreicht Level 2: Knappe".format(self.name)
+            self.levelup("Knappe")
         elif self.xp >= 400 and self.level == 3:
-            self.levelup()
-            return "{} erreicht Level 3: Ritter".format(self.name)
+            self.levelup("Ritter")
         else:
-            return ""
+            return "" ## hier weiterprogrammieren
+        return "{} erreicht Level {}: {}".format(self.name, self.level, self.rank)
 
     def ai(self):
         return (0,0)
@@ -493,6 +527,7 @@ class PygView(object):
             winstyle = 0
         pygame.mixer.pre_init(44100, -16, 2, 2048) # setup mixer to avoid sound lag
         pygame.init()
+        # ----------- Bildschirm einrichten --------
         self.width = width
         self.height = height
         #self.screenrect = pygame.Rect(0, 0, self.width, self.height)
@@ -501,6 +536,8 @@ class PygView(object):
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF)
         self.fps = 30  # frames per second
         pygame.display.set_caption("Press ESC to quit")
+
+        # ------- Resourcen als Class Variable laden, (nach pygame.init), damit sie global verfügbar sind
         # ----- bilder liegen im Verzeichnis "images" ---------
         PygView.WALLS = Spritesheet("wall.png")     # 32 x 39
         PygView.FLOORS = Spritesheet("floor.png")   # 32 x 29
@@ -524,7 +561,13 @@ class PygView(object):
         PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
         PygView.KEY = PygView.FIGUREN.image_at((54, 1682, 32, 32), (0, 0, 0))
         PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32), (0, 0, 0))
+
+
+        # --------- Spieler einrichten --------------
         self.player = Player(x, y, xp, level, hp)
+        # Spieler nach seinem Namen fragen
+        self.player.name = ask("Dein Name [Enter]? >>", int(self.width/3), int(self.height/2), self.screen )
+        self.player.name = self.player.name[0].upper() + self.player.name[1:].lower()
         self.levels = []
         for filename in levelnames:
             self.levels.append(Level(filename))
@@ -550,6 +593,29 @@ class PygView(object):
         #pygame.mixer.music.pause()
         #pygame.mixer.music.unpause()
         #PygView.macesound.play()   # soundeffekt starten
+
+        # -------- Hilftext ------
+        self.hilftextlines = []
+        self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+        self.hilftextlines.append("Befehle:")
+        self.hilftextlines.append("[w] [a] [s] [d]......steuere den Spieler")
+        self.hilftextlines.append("[<] [>]..............Level rauf / Level runter")
+        self.hilftextlines.append("[i]..................zeige Rucksack (inventory)")
+        self.hilftextlines.append("[quit] [exit] [Q]....Spiel verlassen")
+        self.hilftextlines.append("[?] [help]...........diesen Hilfstext anzeigen")
+        self.hilftextlines.append("[q]..................Heiltrank trinken (quaff potion")
+        self.hilftextlines.append("[Enter]..............eine Runde warten")
+        self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+        self.hilftextlines.append("Legende:")
+        self.hilftextlines.append("[#]..................Mauer")
+        self.hilftextlines.append("[.]..................Boden")
+        self.hilftextlines.append("[M]..................Monster")
+        self.hilftextlines.append("[k]..................Schlüssel (key)")
+        self.hilftextlines.append("[L]..................Gegenstand (loot)")
+        self.hilftextlines.append("[D]..................Türe (door)")
+        self.hilftextlines.append("[!]..................Schild")
+        self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+
 
     def paint(self):
         """malt den Level, und das GUI"""
@@ -583,8 +649,8 @@ class PygView(object):
         pygame.draw.rect(self.screen, (0, 0, 0), (0, self.height - gui_height, self.width, gui_height))
         # Textbereich ist 250 px hoch
         # ---- player status ----
-        line = write("Player: hp:{} keys:{}".format(
-                self.player.hitpoints, len(self.player.keys)), (0, 255, 0), 24) # fontsize = 24
+        line = write("{}: hp:{} keys:{}".format(self.player.name,
+                     self.player.hitpoints, len(self.player.keys)), (0, 255, 0), 24) # fontsize = 24
         self.screen.blit(line, (self.width / 2, self.height - gui_height))
         line = write("turn:{} x:{} y:{} Ebene:{}".format(self.turns, self.player.x, self.player.y,
                       self.player.z),   (0, 255, 0), 24)
@@ -631,8 +697,12 @@ class PygView(object):
                         self.player.dx -= 1
                     elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.dx += 1
+                    elif event.key == pygame.K_QUESTION or event.key == pygame.K_h:
+                        display_textlines(self.hilftextlines, self.screen)
+                        continue
                     elif event.key == pygame.K_PERIOD or event.key == pygame.K_RETURN:
                         pass      # player steht eine runde lang herum
+
                     #elif event.key == pygame.K_t:
                     #    Flytext(self.player.x, self.player.y, "player test")
                     elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
