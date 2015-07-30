@@ -16,16 +16,12 @@ Licence: gpl, see http://www.gnu.org/licenses/gpl.html
 descr: a rogue game using python + pygame. graphics from dungeon crawl stone soup
 """
 
-####
-import pygame
-import random
-####
-
-SIDE = 32     # constant
+#
+import pygame, random, os, time
 
 
 def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
-    #print(msg)
+    """erzeugt eine Pygame Surface zum blitten mit Text"""
     myfont = pygame.font.SysFont(font, fontsize)
     mytext = myfont.render(msg, True, fontcolor)
     mytext = mytext.convert_alpha()
@@ -60,6 +56,7 @@ def kampfrunde(m1, m2):
     """Eine Kampfrunde (Schlag). Beste Waffe bzw. beste Rüstung hat Priorität"""
     txt = []
     if m1.hitpoints > 0 and m2.hitpoints > 0:
+        PygView.macesound.play()
         txt.append("Kampf: {} ({} hp) schlägt nach {} ({} hp)".format(m1.name, m1.hitpoints, m2.name, m2.hitpoints))
         schaden = m1.level
         if "Schwert" in m1.rucksack:      # and rucksack["Waffe"] >0:
@@ -99,6 +96,37 @@ def kampfrunde(m1, m2):
             txt.append("Kampf: {} bleibt unverletzt".format(m2.name))
     return txt
 
+
+def load_sound(file):
+    if not pygame.mixer:
+        return No_sound()
+    file = os.path.join("sounds", file)
+    try:
+        sound = pygame.mixer.Sound(file)
+        return sound
+    except pygame.error:
+        print('Warning, unable to load,', file)
+    return No_sound()
+
+
+def load_music(file):
+    if not pygame.mixer:
+        return No_sound()
+    file = os.path.join("music", file)
+    try:
+        music = pygame.mixer.music.load(file)
+        return music
+    except pygame.error:
+        print('Warning, unable to load,',file)
+    return No_sound()
+
+
+class No_sound:
+    """wird von der Funktion load_sound benötigt, falls die Soundausgabe nicht funktioniert"""
+    def play(self):
+        pass
+
+
 class Spritesheet(object):
     """ from pygame.org
     #import spritesheet
@@ -113,7 +141,7 @@ class Spritesheet(object):
     """
     def __init__(self, filename):
         try:
-            self.sheet = pygame.image.load(filename).convert()
+            self.sheet = pygame.image.load(os.path.join("images", filename)).convert()
         except pygame.error:
             print ('Unable to load spritesheet image:'), filename
             raise #SystemExit, message
@@ -144,11 +172,11 @@ class Spritesheet(object):
 
 
 class Monster(object):
-    def __init__(self ,x ,y ,xp ,level ,hp ,bild=""):
+    def __init__(self ,x ,y ,xp ,level=1 ,hp=0 ,bild=""):
         self.x = x
         self.y = y
         self.xp = xp
-        self.level = level
+        self.level = level   # normalerweise startet mit level 1
         if hp == 0:
             self.hitpoints = random.randint(10,20)
         else:
@@ -161,7 +189,7 @@ class Monster(object):
         self.strength = random.randint(1,10)
         self.dexterity = random.randint(1,10)
         self.intelligence = random.randint(1,10)
-
+        # Startausrüstung (gilt für Monster und Spieler)
         self.rucksack = {}
         for z in ["Taschenmesser", "Schwert", "Schild", "Rüstung"]:
             if random.random() < 0.1:  # 10% Chance
@@ -185,7 +213,7 @@ class Boss(Monster):
 
 
 class Player(Monster):
-    def __init__(self, x, y, xp ,level, hp=0, bild = ""):
+    def __init__(self, x, y, xp ,level, hp=0, bild= ""):
         Monster.__init__(self, x, y, xp, level, hp, bild)
         self.name = "Player"
         self.rucksack = {}
@@ -195,26 +223,27 @@ class Player(Monster):
             self.hitpoints = random.randint(5,10)
         else:
             self.hitpoints = hp
-        self.bild = PygView.PLAYERBILD
+        if bild == "":
+           self.bild = PygView.PLAYERBILD
+        else:
+            self.bild = bild
 
     def levelup(self):
         self.level += 1
         self.hitpoints += self.level* 2 + random.randint(1,6)
 
     def check_levelup(self):
-        if self.xp >= 100 and self.level == 0:
+        if self.xp >= 100 and self.level == 1:
             self.levelup()
             return "{} erreicht Level 1: Page".format(self.name)
-        elif self.xp >= 200 and self.level == 1:
+        elif self.xp >= 200 and self.level == 2:
             self.levelup()
             return "{} erreicht Level 2: Knappe".format(self.name)
-        elif self.xp >= 400 and self.level == 2:
+        elif self.xp >= 400 and self.level == 3:
             self.levelup()
             return "{} erreicht Level 3: Ritter".format(self.name)
         else:
             return ""
-
-
 
     def ai(self):
         return (0,0)
@@ -321,7 +350,7 @@ class Level(object):
     def __init__(self, dateiname):
         """liest den dateinamen ein und erzeugt ein Level-Object"""
         #self.lines = []
-        self.layout = {} # lines of non-movable stuff
+        self.layout = {}         # lines of non-movable stuff
         self.schilder = {}       # schildnummer: schildtext
         self.monsters = []
         self.signs = []
@@ -367,7 +396,6 @@ class Level(object):
                     elif char in "123456789":
                         self.signs.append(Sign(x,y,char))
                         self.layout[(x,y)] = Floor()
-
                     elif char == "#":
                         self.layout[(x,y)] = Wall()
                     x += 1
@@ -380,7 +408,7 @@ class Level(object):
 
 
     def update(self):
-        """löscht alle Monster und Fallen die keine hitpoints mehr haben"""
+        """löscht alle Monster und Fallen etc. die keine hitpoints mehr haben"""
         self.monsters = [m for m in self.monsters if m.hitpoints > 0]
         self.traps = [t for t in self.traps if t.hitpoints > 0]
         self.keys = [k for k in self.keys if not k.carried]
@@ -404,8 +432,6 @@ class Level(object):
             if self.is_monster(x + dx, y + dy):
                 continue
             if x+dx == player.x and y+dy == player.y:
-                #self.status.append("{}: {}".format(self.turns, kampfrunde(monster, self.player)))
-                #self.status.append("{}: {}".format(self.turns, kampfrunde(self.player, monster)))
                 game.status.extend(kampfrunde(monster, player))
                 game.status.extend(kampfrunde(player, monster))
                 continue     # Monster würde in player hineinlaufen
@@ -422,16 +448,21 @@ class Level(object):
             monster.y += dy
 
 class Flytext(pygame.sprite.Sprite):
-    def __init__(self, x, y, text="hallo", rgb=(255,0,0), blockxy = True):
+    def __init__(self, x, y, text="hallo", rgb=(255,0,0), blockxy = True,
+                  dx=0, dy=-50, duration=2, acceleartion_factor = 0.96 ):
+        """a text flying upward and for a short time and disappearing"""
+        self._layer = 7 # bestimmt die Sichtbarkeit von Sprites (vor / hinter anderen Sprites)
+        pygame.sprite.Sprite.__init__(self, self.groups) # WICHTIG !!
         self.text = text
         self.r, self.g, self.b = rgb[0], rgb[1], rgb[2]
-        self._layer = 7
-        #self.groups = flytextgroup, allgroup
-        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.dx = dx
+        self.dy = dy
         if blockxy:
-            self.x, self.y = PygView.scrollx + x * SIDE, PygView.scrolly + y * SIDE
+            self.x, self.y = PygView.scrollx + x * 32, PygView.scrolly + y * 32
         else:
             self.x, self.y = x, y
+        self.duration = duration  # wie lange das Sprite fliegt in Sekunden
+        self.acc = acceleartion_factor  # kleiner 1: Sprite wird langsamer. Größer 1: Sprite wird schneller
         self.image = write(self.text, (self.r, self.g, self.b), 22) # font 22
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
@@ -440,11 +471,13 @@ class Flytext(pygame.sprite.Sprite):
 
     def update(self, seconds):
         self.y += self.dy * seconds
-        self.dy *= 0.96  # langsamer werden
+        self.x += self.dx * seconds
+        self.dy *= self.acc  # langsamer werden
+        self.dx *= self.acc
         self.rect.center = (self.x, self.y)
         self.time += seconds
-        if self.time > 2.0:
-            self.kill()
+        if self.time > self.duration:
+            self.kill()      # lösche Sprite
 
 
 
@@ -453,34 +486,41 @@ class PygView(object):
     scrollx = 0  # class variables, can be read from everywhere
     scrolly = 0
 
-    def __init__(self, levelnames, width=640, height=400, x=1,y=1, xp=0, level=1, hp=50,):
+    def __init__(self, levelnames, width=640, height=400, x=1,y=1, xp=0, level=1, hp=50, fullscreen=False):
+        if fullscreen:
+            winstyle = pygame.FULLSCREEN
+        else:
+            winstyle = 0
+        pygame.mixer.pre_init(44100, -16, 2, 2048) # setup mixer to avoid sound lag
         pygame.init()
-
         self.width = width
         self.height = height
+        #self.screenrect = pygame.Rect(0, 0, self.width, self.height)
+        #bestdepth = pygame.display.mode_ok(self.screenrect.size, winstyle, 32)
+        #self.screen = pygame.display.set_mode(self.screenrect.size, winstyle, bestdepth)
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF)
         self.fps = 30  # frames per second
         pygame.display.set_caption("Press ESC to quit")
-
+        # ----- bilder liegen im Verzeichnis "images" ---------
         PygView.WALLS = Spritesheet("wall.png")     # 32 x 39
         PygView.FLOORS = Spritesheet("floor.png")   # 32 x 29
         PygView.FIGUREN = Spritesheet("player-keanu.png") # 32 x 57
         PygView.GUI = Spritesheet("gui.png")        # 32 x 17
         PygView.FEAT = Spritesheet("feat-keanu.png")      # 32 x 16
         PygView.MAIN = Spritesheet("main-keanu.png")      # 32 x 29
-        
-        PygView.WALL = PygView.WALLS.image_at((0, 0, 34, 32)) #x oben links, y oben links, höhe, teife
+        # ------ einzelnes Bild mit image_at holen: (x linke obere Ecke,y linke obere Ecke, Breite, Tiefe)
+        PygView.WALL = PygView.WALLS.image_at((0, 0, 34, 32))  # x oben links, y oben links, höhe, teife
         PygView.WALL1 = PygView.WALLS.image_at((34, 0, 32, 32))
         PygView.WALL2 = PygView.WALLS.image_at((68, 0, 32, 32))
-#        PygView.SIGN  = PygView.GUI.image_at((SIDE*6,0,SIDE,SIDE))
-        PygView.FLOOR  = PygView.FLOORS.image_at((160, SIDE*2, SIDE, SIDE))
+#        PygView.SIGN  = PygView.GUI.image_at((32*6,0,32,32))
+        PygView.FLOOR  = PygView.FLOORS.image_at((160, 32*2, 32, 32))
         PygView.FLOOR1 = PygView.FLOORS.image_at((192, 160, 32, 32))
         PygView.TRAP  = PygView.FEAT.image_at((30, 128, 32, 32), (0, 0, 0))
         PygView.PLAYERBILD = PygView.FIGUREN.image_at((111, 1215, 32, 32), (0, 0, 0))
-        PygView.STAIRDOWN = PygView.FEAT.image_at((SIDE*4, SIDE*5, SIDE, SIDE))
-        PygView.STAIRUP  = PygView.FEAT.image_at((SIDE*5, SIDE*5, SIDE, SIDE))
-        PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, SIDE, SIDE), (0, 0, 0))
-        PygView.DOOR  = PygView.FEAT.image_at((SIDE*2, SIDE, SIDE, SIDE))
+        PygView.STAIRDOWN = PygView.FEAT.image_at((32*4, 32*5, 32, 32))
+        PygView.STAIRUP  = PygView.FEAT.image_at((32*5, 32*5, 32, 32))
+        PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, 32, 32), (0, 0, 0))
+        PygView.DOOR  = PygView.FEAT.image_at((32*2, 32, 32, 32))
         PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
         PygView.KEY = PygView.FIGUREN.image_at((54, 1682, 32, 32), (0, 0, 0))
         PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32), (0, 0, 0))
@@ -493,58 +533,73 @@ class PygView(object):
         self.seconds = 0
         self.turns = 0
         self.level = self.levels[self.player.z]
-        self.background = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
-        #self.black = pygame.Surface((self.level.width*SIDE, self.level.depth*SIDE))
-
-
+        self.background = pygame.Surface((self.level.width*32, self.level.depth*32))
+        #self.black = pygame.Surface((self.level.width*32, self.level.depth*32))
+        # ------------ Sprite Groups -----------
         self.flytextgroup = pygame.sprite.Group()
         self.allgroup = pygame.sprite.LayeredUpdates() # sprite group with layers
+        # --------- Zuweisung der Sprite groups zu den einzelnen Sprite Class
         Flytext.groups = self.flytextgroup, self.allgroup
+        # ---------- sound and music ----------
+        # sounds liegen im Verzeichnis "sounds", Musik liegt im Verzeichnis "music"
+        PygView.bowsound = load_sound("bow.ogg")
+        PygView.macesound = load_sound("mace.wav")
+        load_music("the_king_is_dead.ogg") # lädt ein music loop in den Mixer
+        #pygame.mixer.music.play()  # hintergrundmusik starten
+        #pygame.mixer.music.stop()
+        #pygame.mixer.music.pause()
+        #pygame.mixer.music.unpause()
+        #PygView.macesound.play()   # soundeffekt starten
 
     def paint(self):
+        """malt den Level, und das GUI"""
         for y in range(self.level.depth):
             for x in range(self.level.width):
-                self.background.blit(self.level.layout[(x,y)].bild, (x * SIDE, y * SIDE))
+                self.background.blit(self.level.layout[(x,y)].bild, (x * 32, y * 32))
                 for sign in [s for s in self.level.signs if s.x == x and s.y ==y]:
-                    self.background.blit(sign.bild, (x * SIDE, y * SIDE))
+                    self.background.blit(sign.bild, (x * 32, y * 32))
                 for trap in [t for t in self.level.traps if t.x == x and t.y == y and t.hitpoints >0
                              and t.visible]:
-                    self.background.blit(trap.bild, (x * SIDE, y * SIDE))
+                    self.background.blit(trap.bild, (x * 32, y * 32))
                 for door in [d for d in self.level.doors if d.x == x and d.y == y and d.closed]:
-                    self.background.blit(door.bild, (x * SIDE, y * SIDE))
+                    self.background.blit(door.bild, (x * 32, y * 32))
                 for loot in [l for l in self.level.loot if l.x == x and l.y == y and not l.carried]:
-                    self.background.blit(loot.bild, (x * SIDE, y * SIDE))
+                    self.background.blit(loot.bild, (x * 32, y * 32))
                 for key in [k for k in self.level.keys if k.x == x and k.y == y and not k.carried]:
-                    self.background.blit(key.bild, (x * SIDE, y * SIDE))
+                    self.background.blit(key.bild, (x * 32, y * 32))
         # Scrolling: der spieler wird immer in der Mitte vom Screen geblittet
-        PygView.scrollx = self.width / 2 - self.player.x * SIDE
-        PygView.scrolly = self.height / 2 - self.player.y * SIDE
+        PygView.scrollx = self.width / 2 - self.player.x * 32
+        PygView.scrolly = self.height / 2 - self.player.y * 32
         self.screen.fill((0, 0, 0))  # bildschirm löschen mit schwarzer Farbe
         self.screen.blit(self.background, (PygView.scrollx, PygView.scrolly))
         # ----- GUI für textbereich
-        gui_height = 250
+        gui_height = 100
         # ---- paint monsters ---
         for monster in self.level.monsters:
-            self.screen.blit(monster.bild, (PygView.scrollx + monster.x * SIDE, PygView.scrolly + monster.y * SIDE))
+            self.screen.blit(monster.bild, (PygView.scrollx + monster.x * 32, PygView.scrolly + monster.y * 32))
         # ---- paint player -----
-        self.screen.blit(self.player.bild, (PygView.scrollx + self.player.x * SIDE, PygView.scrolly + self.player.y * SIDE))
+        self.screen.blit(self.player.bild, (PygView.scrollx + self.player.x * 32, PygView.scrolly + self.player.y * 32))
         # ---- textbereich schwarz übermalen ---
         pygame.draw.rect(self.screen, (0, 0, 0), (0, self.height - gui_height, self.width, gui_height))
         # Textbereich ist 250 px hoch
         # ---- player status ----
-        line = write("Player: hp:{} keys:{} turn:{} x:{} y:{} Ebene:{} xp: {} Level: {}".format(
-                self.player.hitpoints, len(self.player.keys), self.turns, self.player.x,
-                self.player.y, self.player.z, self.player.xp, self.player.level), (0, 255, 0))
-
+        line = write("Player: hp:{} keys:{}".format(
+                self.player.hitpoints, len(self.player.keys)), (0, 255, 0), 24) # fontsize = 24
         self.screen.blit(line, (self.width / 2, self.height - gui_height))
+        line = write("turn:{} x:{} y:{} Ebene:{}".format(self.turns, self.player.x, self.player.y,
+                      self.player.z),   (0, 255, 0), 24)
+        self.screen.blit(line, (self.width / 2, self.height - gui_height + 16))
+        line = write("Exp: {} Level:{}".format(self.player.xp, self.player.level), (0, 255, 0), 24)
+        self.screen.blit(line, (self.width / 2, self.height - gui_height + 16*2))
+
         # ---- paint status messages ----- start 200 pixel from screen bottom
         for number in range(-7, 0, 1):
             if self.status[number][:6] == "Kampf:":
                 r, g, b = 255, 0, 255
             else:
                 r, g, b = 0, 0, 255
-            line = write("{}".format(self.status[number]), (r, g, b+30*number))  # Farbe wird heller
-            self.screen.blit(line, (0, self.height + number * 30))
+            line = write("{}".format(self.status[number]), (r, g, b+30*number), 24)  # Farbe wird heller
+            self.screen.blit(line, (0, self.height + number * 14))
 
 
     def run(self):
@@ -560,6 +615,7 @@ class PygView(object):
                 if event.type == pygame.QUIT:
                     running = False 
                 elif event.type == pygame.KEYDOWN:
+                    # -------- Taste wurde gedrückt und wieder losgelassen ---------
                     wo = self.level.layout[(self.player.x, self.player.y)]
                     self.status.append("Turn {}".format(self.turns))
                     self.turns += 1
@@ -578,7 +634,6 @@ class PygView(object):
                     elif event.key == pygame.K_PERIOD or event.key == pygame.K_RETURN:
                         pass      # player steht eine runde lang herum
                     #elif event.key == pygame.K_t:
-                        # test flytext at player pos
                     #    Flytext(self.player.x, self.player.y, "player test")
                     elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
                         if type(wo).__name__ == "Stair":
@@ -596,8 +651,6 @@ class PygView(object):
                         else:
                             self.status.append("{}: Du musst erst eine Stiege nach oben/unten finden [<],[>]".format(self.turns))
                             break
-                        #self.background = pygame.Surface((len(self.level.lines[0])*SIDE, len(self.level.lines)*SIDE))
-                        #self.refresh_background = True
                     elif event.key == pygame.K_q:                  # q --------- Heiltrank ------------
                             if "Heiltrank" in self.player.rucksack and self.player.rucksack["Heiltrank"] > 0:
                                 self.player.rucksack["Heiltrank"] -= 1
@@ -615,16 +668,16 @@ class PygView(object):
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
                     #self.refresh_background = False
                     if monster:
-                        #self.status.append("{}: {}".format(self.turns, kampfrunde(self.player, monster)))
-                        #self.status.append("{}: {}".format(self.turns, kampfrunde(monster, self.player)))
                         self.status.extend(kampfrunde(self.player, monster))
                         self.status.extend(kampfrunde(monster, self.player))
                         self.player.dx, self.player.dy = 0,0
-                    # ----- testen ob spieler gegen Wand
+                    # ----- testen ob Spieler gegen Wand läuft
                     elif type(wohin).__name__ == "Wall":         # in die Wand gelaufen?
-                        self.status.append("{}: aua, nicht in die Wand laufen!".format(self.turns))
+                        self.status.append("{}: Aua, nicht in die Wand laufen!".format(self.turns))
                         self.player.hitpoints -= 1
+                        Flytext(self.player.x, self.player.y, "Dmg: 1")
                         self.player.dx, self.player.dy = 0,0
+                    # ----- testen ob Spieler gegen Tür läuft
                     for door in [d for d in self.level.doors if d.x == self.player.x+self.player.dx and
                                  d.y == self.player.y + self.player.dy and d.closed]:
                         if len(self.player.keys) > 0:
@@ -635,7 +688,7 @@ class PygView(object):
                             self.player.dx, self.player.dy = 0,0
                             self.status.append("{}: Aua! Du knallst gegen eine versperrte Türe".format(self.turns))
                             self.player.hitpoints -= 1
-                    # ----------------- spieler ist an einer neuen position --------
+                    # ----------------- Spieler ist an einer neuen position --------
                     self.player.x += self.player.dx
                     self.player.y += self.player.dy
                     wo = self.level.layout[(self.player.x, self.player.y)]               # wo bin ich jetzt
@@ -648,7 +701,7 @@ class PygView(object):
                             self.status.append("{}: Stiege runter: [>] drücken zum runtergehen".format(self.turns))
                         else:
                             self.status.append("{}: Stiege rauf: [<] drücken zum raufgehen".format(self.turns))
-                    # --------- liegt etwas  auf dem Boden herum ?
+                    # --------- liegt eine Falle auf dem Boden herum ?
                     for trap in self.level.traps:
                         if trap.x == self.player.x and trap.y == self.player.y:
                             schaden = random.randint(1, 4)
@@ -657,13 +710,13 @@ class PygView(object):
                             if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
                                 self.status.append("{}: Falle kaputt!".format(self.turns))
                                 trap.hitpoints = 0
-
+                    # --------- liegt ein Schlüssel auf dem Boden herum ?
                     for key in self.level.keys:
                         if key.x == self.player.x and key.y == self.player.y:
                             key.carried = True
                             self.player.keys.append(key)
                             self.status.append("{} Schlüssel gefunden".format(self.turns))
-
+                    # --------- liegt Loot auf dem Boden herum ?
                     for i in self.level.loot:
                         if i.x == self.player.x and i.y == self.player.y and not i.carried:
                             i.carried = True
@@ -673,26 +726,23 @@ class PygView(object):
                                 self.player.rucksack[i.text] = 1
                             self.status.append("{} Loot gefunden! ({})".format(self.turns, i.text))
                             Flytext(self.player.x, self.player.y, i.text + " gefunden!", (0,200,0))
-
-
-                    # ------------------- level update
-                    self.level.update()                             # tote monster löschen
+                    # ------------------- level update (Fallen, Türen etc. löschen ------
+                    self.level.update()                                             # tote monster löschen
                     self.level.move_monster(self.player, self)                      # lebende monster bewegen
 
 
             #pressedkeys = pygame.key.get_pressed() 
-
+            # ------------ Bildschirm neu malen, Sprites bewegen --------------
             pygame.display.set_caption("  press Esc to quit. Fps: %.2f (%i x %i)"%(
                                 self.clock.get_fps(), self.width, self.height))
             self.paint()
             #self.allgroup.clear(self.screen, self.background)
             self.allgroup.update(self.seconds)
             self.allgroup.draw(self.screen)
-
-              #  ------- draw the sprites ------
+            #  ------- draw the sprites ------
             pygame.display.flip()
-            #print("scrollxy", PygView.scrollx, PygView.scrolly)
         # ------------ game over -----------------
+        pygame.mixer.music.stop()
         pygame.quit()
         print("Game Over. Hitpoints: {}".format(self.player.hitpoints))
         if self.player.hitpoints < 1:
@@ -702,5 +752,5 @@ class PygView(object):
 
 if __name__ == '__main__':
     levels = ["level1.txt", "level2.txt"]
-    # 1920x1000 pixel, player start at x=1, y=1, with 0 xp, 1 level and 50 hp
-    PygView(levels, 1920, 1000, 1, 1, 0, 1, 50).run()
+    # 800 x 400 pixel, Player startet at x=1, y=1, Erfahrung: 0 xp, level: 1 HP: 50
+    PygView(levels, 800, 400, 1, 1, 0, 1, 50).run()
