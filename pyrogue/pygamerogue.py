@@ -61,7 +61,8 @@ def kampfrunde(m1, m2):
     txt = []
     if m1.hitpoints > 0 and m2.hitpoints > 0:
         PygView.macesound.play()
-        txt.append("Kampf: {} ({} hp) schlägt nach {} ({} hp)".format(m1.name, m1.hitpoints, m2.name, m2.hitpoints))
+        txt.append("Kampf: {} ({}, {} hp) haut {} ({}, {} hp)".format(m1.name, type(m1).__name__, m1.hitpoints,
+                                                                      m2.name, type(m2).__name__, m2.hitpoints))
         schaden = m1.level
         if "Schwert" in m1.rucksack:      # and rucksack["Waffe"] >0:
             damage = random.randint(schaden, schaden+3)
@@ -92,6 +93,12 @@ def kampfrunde(m1, m2):
             if m2.hitpoints < 1:
                 exp = random.randint(7, 10)
                 m1.xp += exp
+                m1.kills += 1
+                victim = type(m2).__name__    # der Name der Class vom Opfer
+                if victim in m1.killdict:
+                    m1.killdict[victim] += 1
+                else:
+                    m1.killdict[victim] = 1
                 txt.append("Kampf: {} hat keine Hitpoints mehr, {} bekommt {} Xp".format(m2.name, m1.name, exp))
                 line = m1.check_levelup()
                 if line:
@@ -144,12 +151,15 @@ def ask(question, x, y, screen):   # from pygame newsgroup
             elif event.key == pygame.K_BACKSPACE:
                 text = text[0:-1]
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                if text == "":
+                    continue
                 return text
             elif event.key == pygame.K_ESCAPE:
                 return "Dorftrottel"
             elif event.key <= 127:
                 text += chr(event.key)
         line = write(question + ": " + text)
+        screen.fill((0,0,0))
         screen.blit(line, (x, y))
         pygame.display.flip()
 
@@ -205,10 +215,12 @@ class Spritesheet(object):
 
 
 class Monster(object):
-    def __init__(self ,x ,y ,xp ,level=1 ,hp=0 ,bild=""):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
         self.x = x
         self.y = y
         self.xp = xp
+        self.kills = 0
+        self.killdict = {}
         self.level = level   # normalerweise startet mit level 1
         self.rank = ""
         if hp == 0:
@@ -219,7 +231,7 @@ class Monster(object):
             self.bild = PygView.MONSTERBILD
         else:
             self.bild = bild
-        self.name = "Monster"
+        self.name = random.choice(("Frank", "Kunibert", "Eisenfresser", "Galomir"))
         self.strength = random.randint(1,10)
         self.dexterity = random.randint(1,10)
         self.intelligence = random.randint(1,10)
@@ -232,22 +244,71 @@ class Monster(object):
     def check_levelup(self, rank="nobody"):
         return ""
 
-    def ai(self):
+    def ai(self, player):
         """returns dx, dy: where the monster wants to go"""
         dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
         return random.choice(dirs)   #return dx, xy
 
 
 class Boss(Monster):
-    def __init__(self, x,y,hp, bild):
-        Monster.__init__(self, x, y, hp, bild)
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        Monster.__init__(self, x, y, xp, level, hp, bild)
 
-    def ai(self):
+    def ai(self, player):
         """a Boss is intelligent enough to chase the player"""
+        #dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
+        dx, dy = 0, 0
+        if self.x > player.x:
+            dx = -1
+        elif self.x < player.x:
+            dx = 1
+        if self.y > player.y:
+            dy = -1
+        elif self.y < player.y:
+            dy = 1
+        return dx, dy
+
+class Goblin(Monster):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        """ein Beispiel für ein schwaches Monster"""
+        Monster.__init__(self, x, y, xp, level, hp, bild)
+        # ------- ab hier selber coden ----
+        # self.bild = random.choice((PygView.GOBLIN1, PygView.GOBLIN2, PygView.GOBLIN3))
+        # self.strength = random.randint(1,6)   # andere Stärke als Standard MONSTER
+        # -- etwas in den Rucksack geben
+        # self.rucksack["Goblin-Amulett"] = 1
+
+class Wolf(Monster):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        """ein Beispiel für ein schwaches Monster"""
+        Monster.__init__(self, x, y, xp, level, hp, bild)
+        # ------- ab hier selber coden ----
+        # self.bild = random.choice((PygView.WOLF1, PygView.WOLF2, PygView.WOLF3))
+        # self.strength = random.randint(3,4)   # andere Stärke als Standard MONSTER
+        # self.dexterity = random.randint(5,8)  # andere Geschicklichkeit als Standard Monster
+
+class EliteWarrior(Boss):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        """ein Beispiel für einen starken Boss"""
+        Monster.__init__(self, x, y, xp, level, hp, bild)
+        # ------- ab hier selber coden ----
+        # self.bild = random.choice((PygView.WARRIOR1, PygView.WARRIOR2, PygView.WARRIOR3))
+        # self.strength = random.randint(12,24)   # andere Stärke als Standard MONSTER
+        # self.rucksack["Schwert"] = 1
+        # self.rucksack["Schild"] = 1
+
+class Golem(Boss):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        """ein Beispiel für einen starken Boss"""
+        Monster.__init__(self, x, y, xp, level, hp, bild)
+        # ------- ab hier selber coden ----
+        # self.bild = random.choice((PygView.GOLEM1, PygView.GOLEM2, PygView.GOLEM3))
+        # self.strength = random.randint(20,30)   # andere Stärke als Standard MONSTER
+
 
 
 class Player(Monster):
-    def __init__(self, x, y, xp ,level, hp=0, bild= ""):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
         Monster.__init__(self, x, y, xp, level, hp, bild)
         self.name = "Player"
         self.rank = "Zivilist"
@@ -407,7 +468,10 @@ class Level(object):
                 for char in line[:-1]:
                     #print("xy:",x,y)
                     if char == "M":
-                        self.monsters.append(Monster(x, y,0, 1, 0))
+                        self.monsters.append(random.choice([Goblin(x, y), Wolf(x,y)]))
+                        self.layout[(x,y)] = Floor()
+                    elif char == "B":
+                        self.monsters.append(random.choice([EliteWarrior(x, y), Golem(x,y)]))
                         self.layout[(x,y)] = Floor()
                     elif char == "T":
                         self.traps.append(Trap(x,y))
@@ -456,30 +520,8 @@ class Level(object):
                 return monster
         return False
 
-    def move_monster(self, player, game):
-        """bewegt Monster (NICHT den Player) zufällig (oder gar nicht)"""
-        for monster in self.monsters:
-            #if monster.name == "Player":
-            #    continue
-            x, y = monster.x, monster.y
-            dx, dy = monster.ai()
-            if self.is_monster(x + dx, y + dy):
-                continue
-            if x+dx == player.x and y+dy == player.y:
-                game.status.extend(kampfrunde(monster, player))
-                game.status.extend(kampfrunde(player, monster))
-                continue     # Monster würde in player hineinlaufen
-            wohin = self.layout[(x+dx, y+dy)]
-            if type(wohin).__name__ == "Wall":
-                continue     # Monster würde in Mauer laufen
-            for trap in self.traps:
-                if trap.x == x+dx and trap.y == y+dy:
-                    continue # Monster würde in Falle laufen
-            for door in self.doors:
-                if door.x == x+dx and door.y == y+dy:
-                    continue # Monster würde in Türe laufen
-            monster.x += dx
-            monster.y += dy
+
+
 
 class Flytext(pygame.sprite.Sprite):
     def __init__(self, x, y, text="hallo", rgb=(255,0,0), blockxy = True,
@@ -500,7 +542,6 @@ class Flytext(pygame.sprite.Sprite):
         self.image = write(self.text, (self.r, self.g, self.b), 22) # font 22
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
-        self.dy = -50  # geschwindigkeit mit der text anfangs nach oben fliegt
         self.time = 0
 
     def update(self, seconds):
@@ -798,7 +839,28 @@ class PygView(object):
                             Flytext(self.player.x, self.player.y, i.text + " gefunden!", (0,200,0))
                     # ------------------- level update (Fallen, Türen etc. löschen ------
                     self.level.update()                                             # tote monster löschen
-                    self.level.move_monster(self.player, self)                      # lebende monster bewegen
+                    # -------------- Monster bewegen ------------------
+                    #self.level.move_monster(self.player, self)                      # lebende monster bewegen
+                    #    def move_monster(self, player, game):
+                    #"""bewegt Monster (NICHT den Player) zufällig (oder gar nicht)"""
+                    for monster in self.level.monsters:
+                        x, y = monster.x, monster.y
+                        dx, dy = monster.ai(self.player)
+                        if self.level.is_monster(x + dx, y + dy):
+                            continue  # Monster wollte in anderes Monster laufen, wartet stattdessen
+                        if x+dx == self.player.x and y+dy == self.player.y:
+                            self.status.extend(kampfrunde(monster, self.player))
+                            self.status.extend(kampfrunde(self.player, monster))
+                            continue     # Monster würde in player hineinlaufen, kämpft stattdessen
+                        wohin = self.level.layout[(x+dx, y+dy)]
+                        if type(wohin).__name__ == "Wall":
+                            continue     # Monster würde in Mauer laufen, wartet stattdessen
+                        if len([t for t in self.level.traps if t.x == x + dx and t.y == y + dy]) > 0:
+                            continue     # Monster würde in Falle laufen, wartet stattdessen
+                        if len([d for d in self.level.doors if d.x == x + dx and d.y == y + dy]) > 0:
+                            continue # Monster würde in Türe laufen, wartet stattdessen
+                        monster.x += dx
+                        monster.y += dy
 
 
             #pressedkeys = pygame.key.get_pressed() 
@@ -813,14 +875,24 @@ class PygView(object):
             pygame.display.flip()
         # ------------ game over -----------------
         pygame.mixer.music.stop()
-        pygame.quit()
-        print("Game Over. Hitpoints: {}".format(self.player.hitpoints))
+        print("**** Game Over *******")
+        print("Hitpoints: {}\nTurns: {}\nXP: {}\nLevel: {}\nRank: {}\nKills: {}".format(self.player.hitpoints,
+              self.turns, self.player.xp, self.player.level, self.player.rank, self.player.kills))
         if self.player.hitpoints < 1:
-           print("Du bist tot")
-        self.player.zeige_rucksack()
+           print("=========Du bist tot==========")
+        lines = self.player.zeige_rucksack()
+        print("Dein Rucksack:")
+        for line in lines:
+            print(line)
+        print("======= Deine Kills =======")
+        for v in self.player.killdict:
+            print(v, ":", self.player.killdict[v])
+        pygame.quit()    # beendet pygame
+        #sys.exit()      # beendet python
 
 
 if __name__ == '__main__':
-    levels = ["level1.txt", "level2.txt"]
+    levels = ["level1demo.txt",
+              "level2demo.txt"]
     # 800 x 400 pixel, Player startet at x=1, y=1, Erfahrung: 0 xp, level: 1 HP: 50
-    PygView(levels, 800, 400, 1, 1, 0, 1, 50).run()
+    PygView(levels, 1600, 1000, 1, 1, 0, 1, 50).run()
