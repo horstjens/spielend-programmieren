@@ -35,6 +35,7 @@ def display_textlines(lines, screen, color=(0,0,255), image=None, center=True, i
 
     offset = 0
     pygame.display.set_caption("Press ENTER to ext, UP / DOWN to scroll")
+    lines.extend(("", "", "", "press [Enter] to continue"))
     while True:
         screen.fill((0, 0, 0))
         if image:
@@ -92,9 +93,18 @@ def kampfrunde(m1, m2):
             damage -= (schaden-1)+1
             blocked_damage += 1
             txt.append("Kampf: Schild von {} aborbiert einen Schadenspunkt".format(m2.name))
-        Flytext(m2.x, m2.y, "dmg: {}".format(damage))
+        fly_dx, fly_dy = 0, -30
+        if m2.x > m1.x:
+            fly_dx = 50
+        elif m2.x < m1.x:
+            fly_dx = -50
+        if m2.y > m1.y:
+            fly_dy = 50
+        elif m2.y < m1.y:
+            fly_dy = -50
+        Flytext(m2.x, m2.y, "dmg: {}".format(damage), dx=fly_dx, dy=fly_dy)  # Text soll weg vom Gegner fliegen
         if blocked_damage > 0:
-            Flytext(m2.x, m2.y+1, "blocked: {}".format(blocked_damage), (0,255,0))
+            Flytext(m2.x, m2.y+1, "blocked: {}".format(blocked_damage), (0,255,0), dx=fly_dx)
         if damage > 0:
             m2.hitpoints -= damage
             txt.append("Kampf: {} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
@@ -232,7 +242,7 @@ class Monster(object):
         self.level = level   # normalerweise startet mit level 1
         self.rank = ""
         if hp == 0:
-            self.hitpoints = random.randint(10,20)
+            self.hitpoints = random.randint(10, 20)
         else:
             self.hitpoints = hp
         if bild == "":
@@ -246,25 +256,25 @@ class Monster(object):
         # Startausrüstung (gilt für Monster und Spieler)
         self.rucksack = {}
         for z in ["Taschenmesser", "Schwert", "Schild", "Rüstung"]:
-            if random.random() < 0.1:  # 10% Chance
+            if random.random() < 0.1:  # jeweils 10% Chance pro Item
                 self.rucksack[z] = 1
 
     def check_levelup(self, rank="nobody"):
         return ""
 
     def ai(self, player):
-        """returns dx, dy: where the monster wants to go"""
+        """returns a random dx, dy: where the monster wants to go"""
         dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
-        return random.choice(dirs)   #return dx, xy
+        return random.choice(dirs)   # return dx, xy
 
 
 class Boss(Monster):
     def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        """verfolgt den Spieler"""
         Monster.__init__(self, x, y, xp, level, hp, bild)
 
     def ai(self, player):
-        """a Boss is intelligent enough to chase the player"""
-        #dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
+        """boss moves toward the player"""
         dx, dy = 0, 0
         if self.x > player.x:
             dx = -1
@@ -275,6 +285,14 @@ class Boss(Monster):
         elif self.y < player.y:
             dy = 1
         return dx, dy
+
+class Statue(Monster):
+    def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
+        """bewegt sich überhaupt nicht, darf sich verteidigen"""
+        Monster.__init__(self, x, y, xp, level, hp, bild)
+
+    def ai(self, player):
+        return 0, 0
 
 class Goblin(Monster):
     def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
@@ -300,6 +318,7 @@ class EliteWarrior(Boss):
         """ein Beispiel für einen starken Boss"""
         Monster.__init__(self, x, y, xp, level, hp, bild)
         # ------- ab hier selber coden ----
+        # self.hitpoints = 100
         # self.bild = random.choice((PygView.WARRIOR1, PygView.WARRIOR2, PygView.WARRIOR3))
         # self.strength = random.randint(12,24)   # andere Stärke als Standard MONSTER
         # self.rucksack["Schwert"] = 1
@@ -475,36 +494,32 @@ class Level(object):
                     continue
                 x = 0
                 for char in line[:-1]:
+                    self.layout[(x,y)] = Floor() # sofern nicht überschrieben wird, ist hier ein Boden
                     #print("xy:",x,y)
                     if char == "M":
                         self.monsters.append(random.choice([Goblin(x, y), Wolf(x,y)]))
-                        self.layout[(x,y)] = Floor()
                     elif char == "B":
                         self.monsters.append(random.choice([EliteWarrior(x, y), Golem(x,y)]))
-                        self.layout[(x,y)] = Floor()
+                    elif char == "S":
+                        self.monsters.append(Statue(x, y))  # stationäres Monster
                     elif char == "T":
                         self.traps.append(Trap(x,y))
-                        self.layout[(x,y)] = Floor()
                     elif char == "D":
                         self.doors.append(Door(x,y))
-                        self.layout[(x,y)] = Floor()
                     elif char == "L":
                         self.loot.append(Loot(x,y))
-                        self.layout[(x,y)] = Floor()
                     elif char == "k":
                         self.keys.append(Key(x,y))
-                        self.layout[(x,y)] = Floor()
                     elif char == "<":
-                        self.layout[(x,y)] = Stair("up")
+                        self.layout[(x,y)] = Stair("up")     # kein Floor, sondern Stiege
                     elif char == ">":
                         self.layout[(x,y)] = Stair("down")
                     elif char == ".":
-                        self.layout[(x,y)] = Floor()
+                        pass  # self.layout[(x,y)] = Floor()  # es war eh schon ein Floor() da
                     elif char in "123456789":
                         self.signs.append(Sign(x,y,char))
-                        self.layout[(x,y)] = Floor()
                     elif char == "#":
-                        self.layout[(x,y)] = Wall()
+                        self.layout[(x,y)] = Wall()           # kein Floor, sondern Mauer
                     x += 1
                 y += 1
                 self.width = max(self.width, x)
@@ -648,6 +663,8 @@ class PygView(object):
         self.level = self.levels[0]
         self.seconds = 0
         self.turns = 0
+        self.mo1 = 0  # Anzahl Monster in diesem  Level, wird automatisch errechnet
+        self.mo2 = 0  # Anzahl Monster im Dungeon, wird automatisch errechnet
         self.level = self.levels[self.player.z]
         self.background = pygame.Surface((self.level.width*32, self.level.depth*32))
         #self.black = pygame.Surface((self.level.width*32, self.level.depth*32))
@@ -674,23 +691,13 @@ class PygView(object):
         self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
         self.hilftextlines.append("Befehle:")
         self.hilftextlines.append("[w] [a] [s] [d]......steuere den Spieler")
-        self.hilftextlines.append("[<] [>]..............Level rauf / Level runter")
+        self.hilftextlines.append("[<] oder [>].........Stiege benutzen (Level rauf / Level runter)")
         self.hilftextlines.append("[i]..................zeige Rucksack (inventory)")
-        self.hilftextlines.append("[quit] [exit] [Q]....Spiel verlassen")
-        self.hilftextlines.append("[?] [help]...........diesen Hilfstext anzeigen")
+        self.hilftextlines.append("[Esc]................Spiel verlassen")
+        self.hilftextlines.append("[h]..................help, diesen Hilfstext anzeigen")
         self.hilftextlines.append("[q]..................Heiltrank trinken (quaff potion")
         self.hilftextlines.append("[Enter]..............eine Runde warten")
         self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-        self.hilftextlines.append("Legende:")
-        self.hilftextlines.append("[#]..................Mauer")
-        self.hilftextlines.append("[.]..................Boden")
-        self.hilftextlines.append("[M]..................Monster")
-        self.hilftextlines.append("[k]..................Schlüssel (key)")
-        self.hilftextlines.append("[L]..................Gegenstand (loot)")
-        self.hilftextlines.append("[D]..................Türe (door)")
-        self.hilftextlines.append("[!]..................Schild")
-        self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-
 
     def paint(self):
         """malt den Level, und das GUI"""
@@ -718,7 +725,7 @@ class PygView(object):
         # ---- paint monsters ---
         for monster in self.level.monsters:
             self.screen.blit(monster.bild, (PygView.scrollx + monster.x * 32, PygView.scrolly + monster.y * 32))
-            # healthbar zeichnen
+            # ------- healthbar zeichnen ----------
             #pygame.draw.rect(self.screen, (255,255,255), (PygView.scrollx + monster.x * 32,
             #    PygView.scrolly + monster.y * 32 - 15,32,4))
             pygame.draw.rect(self.screen, (255,0 ,0    ), (PygView.scrollx + monster.x * 32 ,
@@ -729,7 +736,6 @@ class PygView(object):
         self.screen.blit(self.player.bild, (PygView.scrollx + self.player.x * 32, PygView.scrolly + self.player.y * 32))
         # ---- textbereich schwarz übermalen ---
         pygame.draw.rect(self.screen, (0, 0, 0), (0, self.height - gui_height, self.width, gui_height))
-        # Textbereich ist 250 px hoch
         # ---- player status ----
         line = write("{}: hp:{} keys:{}".format(self.player.name,
                      self.player.hitpoints, len(self.player.keys)), (0, 255, 0), 24) # fontsize = 24
@@ -739,7 +745,8 @@ class PygView(object):
         self.screen.blit(line, (self.width / 2, self.height - gui_height + 16))
         line = write("Exp: {} Level:{}".format(self.player.xp, self.player.level), (0, 255, 0), 24)
         self.screen.blit(line, (self.width / 2, self.height - gui_height + 16*2))
-
+        line = write("Anzahl Monster hier: {} insgesamt: {}".format(self.mo1, self.mo2), (0, 255, 0), 24)
+        self.screen.blit(line, (self.width / 2, self.height - gui_height + 16*3))
         # ---- paint status messages ----- start 200 pixel from screen bottom
         for number in range(-7, 0, 1):
             if self.status[number][:6] == "Kampf:":
@@ -749,11 +756,15 @@ class PygView(object):
             line = write("{}".format(self.status[number]), (r, g, b+30*number), 24)  # Farbe wird heller
             self.screen.blit(line, (0, self.height + number * 14))
 
+    def count_monsters(self):
+        self.mo1 = len(self.level.monsters)
+        self.mo2 = sum([len(l.monsters) for l in self.levels])
 
     def run(self):
         """The mainloop---------------------------------------------------"""
         self.clock = pygame.time.Clock() 
         running = True
+        self.count_monsters()
         self.status = ["The game begins!", "You enter the dungeon...", "Hint: goto x:5 y:5",
                        "Hint: avoid traps", "Hint: Plunder!", "press ? for help", "good luck!"]
         while running and self.player.hitpoints > 0:
@@ -789,45 +800,48 @@ class PygView(object):
                         continue
                     elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
                         if type(wo).__name__ == "Stair":
-                            if not wo.down:
-                                if self.player.z == 0:
-                                    print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
-                                    running = False
-                                    break
-                                else:
-                                    self.player.z -= 1
-                                    self.level = self.levels[self.player.z]
+                            if not wo.down and self.player.z == 0:
+                                lines=["Game OVer",
+                                       "Du verlässt den Dungeon und kehrst zurück an die Oberfläche",
+                                       "...und zwar lebend!"]
+                                display_textlines(lines,self.screen, (255, 255, 255) )
+                                running = False
+                                break
+                            elif not wo.down:
+                                self.player.z -= 1
                             else:
                                 self.player.z += 1
-                                self.level = self.levels[self.player.z]
+
+                            self.level = self.levels[self.player.z]    # ---------- change level -----------------
+                            self.background = pygame.Surface((self.level.width*32, self.level.depth*32))
                         else:
                             self.status.append("{}: Du musst erst eine Stiege nach oben/unten finden [<],[>]".format(self.turns))
                             break
-                    elif event.key == pygame.K_q:                  # q --------- Heiltrank ------------
+                    elif event.key == pygame.K_q:       # -----(q)uaff potion --------- Heiltrank ------------
                             if "Heiltrank" in self.player.rucksack and self.player.rucksack["Heiltrank"] > 0:
                                 self.player.rucksack["Heiltrank"] -= 1
                                 effekt = random.randint(2, 5)
                                 self.player.hitpoints += effekt
                                 self.status.append("{}: Du trinkst einen Heiltrank und erhälst {} hitpoints".format(
                                                    self.turns, effekt))
+                                Flytext(self.player.x, self.player.y,"gluck, gluck, gluck: +{} hp".format(effekt), (0,0,255))
                             else:
                                 self.status.append("{}: In Deinem Rucksack befindet sich kein Heiltrank. Sammle Loot!".format(
                                                    self.turns))
-
                     # --------------- new location ----------
                     # wohin: Block (Floor, Wall, Stair)
                     wohin = self.level.layout[(self.player.x+self.player.dx,self.player.y+self.player.dy)]
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
-                    #self.refresh_background = False
-                    if monster:
+                    if monster:     # ---- Kampf: Spieler läuft in Monster hinein -----
                         self.status.extend(kampfrunde(self.player, monster))
                         self.status.extend(kampfrunde(monster, self.player))
-                        self.player.dx, self.player.dy = 0,0
+                        self.player.dx, self.player.dy = 0, 0
+                        self.count_monsters()
                     # ----- testen ob Spieler gegen Wand läuft
                     elif type(wohin).__name__ == "Wall":         # in die Wand gelaufen?
                         self.status.append("{}: Aua, nicht in die Wand laufen!".format(self.turns))
                         self.player.hitpoints -= 1
-                        Flytext(self.player.x, self.player.y, "Dmg: 1")
+                        Flytext(self.player.x, self.player.y, "Aua! Dmg: 1 hp")
                         self.player.dx, self.player.dy = 0,0
                     # ----- testen ob Spieler gegen Tür läuft
                     for door in [d for d in self.level.doors if d.x == self.player.x+self.player.dx and
@@ -840,19 +854,34 @@ class PygView(object):
                             self.player.dx, self.player.dy = 0,0
                             self.status.append("{}: Aua! Du knallst gegen eine versperrte Türe".format(self.turns))
                             self.player.hitpoints -= 1
+                            Flytext(self.player.x, self.player.y, "Aua! Dmg: 1 hp")
                     # ----------------- Spieler ist an einer neuen position --------
                     self.player.x += self.player.dx
                     self.player.y += self.player.dy
                     wo = self.level.layout[(self.player.x, self.player.y)]               # wo bin ich jetzt
                     # ------------- spezielle Story -------------------
+                    #      ---- Story 1: Besuch bei Druid
                     if self.player.x == 5 and self.player.y == 5 and self.player.z == 0 and not self.player.druid_visited:
                         # bei position 5, 5 im ersten Level
                         lines = ["Ich grüße Dich, Fremder.",
-                                 "Willkommen in meinem Dungeon",
+                                 "Willkommen im Dungeon",
+                                 "Wo wir Druiden von Monstern",
+                                 "bewacht werden.",
+                                 "Bitte berfeie uns:",
                                  "besiege alle Monster"]
                         display_textlines(lines, self.screen, (0,255,255), PygView.DRUID)
                         self.player.druid_visited = True
-                    #if type(wo).__name__ == "Sign":
+                    #      ----- Story 2: Aufgabe von Druid gelöst: alle Monster besiegt
+                    if self.mo2 == 0 and self.player.druid_visited:
+                        lines = ["Ich gratuliere Dir",
+                                 "Du hast uns befreit",
+                                 "und alle Monster besiegt",
+                                 "Vielen Dank, o großartiger {}!".format(self.player.name)]
+                        display_textlines(lines, self.screen, (0,255,255), PygView.DRUID)
+                        self.player.rucksack["Belohnung: Halbes Königreich"] = 1
+                        self.player.rucksack["Belohnung: Freundschaft der Druiden"] = 1
+                        running = False
+                    # ------------- Hinweis-schilder ----------
                     for sign in self.level.signs:
                         if sign.x == self.player.x and sign.y == self.player.y:
                             self.status.append("{}: hier steht: {}".format(self.turns, sign.text))
@@ -867,6 +896,7 @@ class PygView(object):
                             schaden = random.randint(1, 4)
                             self.status.append("{}: Aua, in die Falle gelaufen. {} Schaden!".format(self.turns, schaden))
                             self.player.hitpoints -= schaden
+                            Flytext(self.player.x, self.player.y, "a trap! Dmg: {}".format(schaden))
                             if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
                                 self.status.append("{}: Falle kaputt!".format(self.turns))
                                 trap.hitpoints = 0
@@ -876,6 +906,7 @@ class PygView(object):
                             key.carried = True
                             self.player.keys.append(key)
                             self.status.append("{} Schlüssel gefunden".format(self.turns))
+                            Flytext(self.player.x, self.player.y, "i found a key", (0, 200, 0))
                     # --------- liegt Loot auf dem Boden herum ?
                     for i in self.level.loot:
                         if i.x == self.player.x and i.y == self.player.y and not i.carried:
@@ -900,6 +931,7 @@ class PygView(object):
                         if x+dx == self.player.x and y+dy == self.player.y:
                             self.status.extend(kampfrunde(monster, self.player))
                             self.status.extend(kampfrunde(self.player, monster))
+                            self.count_monsters()
                             continue     # Monster würde in player hineinlaufen, kämpft stattdessen
                         wohin = self.level.layout[(x+dx, y+dy)]
                         if type(wohin).__name__ == "Wall":
