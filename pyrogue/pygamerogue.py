@@ -16,8 +16,10 @@ Licence: gpl, see http://www.gnu.org/licenses/gpl.html
 descr: a rogue game using python + pygame. graphics from dungeon crawl stone soup
 """
 
-#
-import pygame, random, os, sys
+import pygame
+import random
+import os
+import sys
 
 
 def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
@@ -28,13 +30,19 @@ def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
     return mytext
 
 
-def display_textlines(lines, screen, color=(0,0,255)):
+def display_textlines(lines, screen, color=(0,0,255), image=None, center=True, imagex=0, imagey=0):
     """zeigt (scrollbare) Text linien, wartet auf ENTER Taste"""
 
     offset = 0
-    pygame.display.set_caption("Press ENTER")
+    pygame.display.set_caption("Press ENTER to ext, UP / DOWN to scroll")
     while True:
-        screen.fill((0,0,0))
+        screen.fill((0, 0, 0))
+        if image:
+            if not center:
+                screen.blit(image, (imagex, imagey))
+            else:
+                screen.blit(image, (PygView.width // 2 - image.get_rect().width //2,
+                                    PygView.height // 2 - image.get_rect().height // 2))
         y = 0
         for textline in lines:
             line = write(textline, color, 24 )
@@ -273,10 +281,10 @@ class Goblin(Monster):
         """ein Beispiel für ein schwaches Monster"""
         Monster.__init__(self, x, y, xp, level, hp, bild)
         # ------- ab hier selber coden ----
-        # self.bild = random.choice((PygView.GOBLIN1, PygView.GOBLIN2, PygView.GOBLIN3))
+        #self.bild = random.choice((PygView.GOBLIN1, PygView.GOBLIN2, PygView.GOBLIN3))
         # self.strength = random.randint(1,6)   # andere Stärke als Standard MONSTER
         # -- etwas in den Rucksack geben
-        # self.rucksack["Goblin-Amulett"] = 1
+        #self.rucksack["Goblin-Amulett"] = 1
 
 class Wolf(Monster):
     def __init__(self, x, y, xp=0, level=1, hp=0, bild=""):
@@ -315,6 +323,7 @@ class Player(Monster):
         self.rucksack = {}
         self.z = 0
         self.keys = []
+        self.druid_visited = False
         if hp == 0:
             self.hitpoints = random.randint(5,10)
         else:
@@ -521,11 +530,30 @@ class Level(object):
         return False
 
 
+class Healthbar(pygame.sprite.Sprite):
+    def __init__(self, boss):
+        """a healthbar hovering over a monster"""
+        self._layer = 6
+        self.boss = boss
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.image = pygame.Surface((32,4))
+        self.rect = self.image.get_rect()
+        self.update(0)
+
+    def update(self, seconds):
+        self.x, self.y = PygView.scrollx + self.boss.x * 32, PygView.scrolly + self.boss.y * 32
+        pygame.draw.rect(self.image, (255,255,255), (0,0,32,4))
+        pygame.draw.rect(self.image, (255,0,0    ), (1,1,31,3))
+        pygame.draw.rect(self.image, (0,0,255    ), (1,1,max(31, boss.hitpoints),3)) # zeigt maximal 31 hitpoints an
+        self.image.convert()
+        self.rect.center = (PygView.scrollx + self.boss.x * 32, PygView.scrolly + self.boss.y * 32)
+        if self.boss.hitpoints < 1:
+            self.kill()
 
 
 class Flytext(pygame.sprite.Sprite):
     def __init__(self, x, y, text="hallo", rgb=(255,0,0), blockxy = True,
-                  dx=0, dy=-50, duration=2, acceleartion_factor = 0.96 ):
+                  dx=0, dy=-50, duration=2, acceleration_factor = 0.96 ):
         """a text flying upward and for a short time and disappearing"""
         self._layer = 7 # bestimmt die Sichtbarkeit von Sprites (vor / hinter anderen Sprites)
         pygame.sprite.Sprite.__init__(self, self.groups) # WICHTIG !!
@@ -538,7 +566,7 @@ class Flytext(pygame.sprite.Sprite):
         else:
             self.x, self.y = x, y
         self.duration = duration  # wie lange das Sprite fliegt in Sekunden
-        self.acc = acceleartion_factor  # kleiner 1: Sprite wird langsamer. Größer 1: Sprite wird schneller
+        self.acc = acceleration_factor  # kleiner 1: Sprite wird langsamer. Größer 1: Sprite wird schneller
         self.image = write(self.text, (self.r, self.g, self.b), 22) # font 22
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
@@ -569,8 +597,8 @@ class PygView(object):
         pygame.mixer.pre_init(44100, -16, 2, 2048) # setup mixer to avoid sound lag
         pygame.init()
         # ----------- Bildschirm einrichten --------
-        self.width = width
-        self.height = height
+        PygView.width = width   #
+        PygView.height = height
         #self.screenrect = pygame.Rect(0, 0, self.width, self.height)
         #bestdepth = pygame.display.mode_ok(self.screenrect.size, winstyle, 32)
         #self.screen = pygame.display.set_mode(self.screenrect.size, winstyle, bestdepth)
@@ -602,6 +630,9 @@ class PygView(object):
         PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
         PygView.KEY = PygView.FIGUREN.image_at((54, 1682, 32, 32), (0, 0, 0))
         PygView.SIGN = PygView.GUI.image_at((197, 0, 32, 32), (0, 0, 0))
+        #------- portraits -----
+        PygView.TRADER = pygame.image.load(os.path.join("images","hakim.png"))
+        PygView.DRUID = pygame.image.load(os.path.join("images","druid.png"))
 
 
         # --------- Spieler einrichten --------------
@@ -621,9 +652,11 @@ class PygView(object):
         #self.black = pygame.Surface((self.level.width*32, self.level.depth*32))
         # ------------ Sprite Groups -----------
         self.flytextgroup = pygame.sprite.Group()
+        self.bargroup = pygame.sprite.Group()
         self.allgroup = pygame.sprite.LayeredUpdates() # sprite group with layers
         # --------- Zuweisung der Sprite groups zu den einzelnen Sprite Class
         Flytext.groups = self.flytextgroup, self.allgroup
+        Healthbar.groups = self.bargroup, self.allgroup
         # ---------- sound and music ----------
         # sounds liegen im Verzeichnis "sounds", Musik liegt im Verzeichnis "music"
         PygView.bowsound = load_sound("bow.ogg")
@@ -684,6 +717,13 @@ class PygView(object):
         # ---- paint monsters ---
         for monster in self.level.monsters:
             self.screen.blit(monster.bild, (PygView.scrollx + monster.x * 32, PygView.scrolly + monster.y * 32))
+            # healthbar zeichnen
+            #pygame.draw.rect(self.screen, (255,255,255), (PygView.scrollx + monster.x * 32,
+            #    PygView.scrolly + monster.y * 32 - 15,32,4))
+            pygame.draw.rect(self.screen, (255,0 ,0    ), (PygView.scrollx + monster.x * 32 ,
+                    PygView.scrolly + monster.y * 32  - 15, 32,5 )) # zeigt maximal 31 hitpoints an
+            pygame.draw.rect(self.screen, (0,255,0    ), (PygView.scrollx + monster.x * 32 ,
+                    PygView.scrolly + monster.y * 32  - 15, min(32, monster.hitpoints),5 )) # zeigt maximal 31 hitpoints an
         # ---- paint player -----
         self.screen.blit(self.player.bild, (PygView.scrollx + self.player.x * 32, PygView.scrolly + self.player.y * 32))
         # ---- textbereich schwarz übermalen ---
@@ -743,9 +783,10 @@ class PygView(object):
                         continue
                     elif event.key == pygame.K_PERIOD or event.key == pygame.K_RETURN:
                         pass      # player steht eine runde lang herum
-
-                    #elif event.key == pygame.K_t:
-                    #    Flytext(self.player.x, self.player.y, "player test")
+                    elif event.key == pygame.K_i:
+                        # ----------- zeige rucksack (inventory) -----------------
+                        display_textlines(self.player.zeige_rucksack(), self.screen, image= PygView.TRADER)
+                        continue
                     elif event.key == pygame.K_LESS or event.key == pygame.K_GREATER:     # "<":                 # ------ level up
                         if type(wo).__name__ == "Stair":
                             if not wo.down:
@@ -803,6 +844,14 @@ class PygView(object):
                     self.player.x += self.player.dx
                     self.player.y += self.player.dy
                     wo = self.level.layout[(self.player.x, self.player.y)]               # wo bin ich jetzt
+                    # ------------- spezielle Story -------------------
+                    if self.player.x == 5 and self.player.y == 5 and self.player.z == 0 and not self.player.druid_visited:
+                        # bei position 5, 5 im ersten Level
+                        lines = ["Ich grüße Dich, Fremder.",
+                                 "Willkommen in meinem Dungeon",
+                                 "besiege alle Monster"]
+                        display_textlines(lines, self.screen, (0,255,255), PygView.DRUID)
+                        self.player.druid_visited = True
                     #if type(wo).__name__ == "Sign":
                     for sign in self.level.signs:
                         if sign.x == self.player.x and sign.y == self.player.y:
@@ -888,7 +937,7 @@ class PygView(object):
         for v in self.player.killdict:
             print(v, ":", self.player.killdict[v])
         pygame.quit()    # beendet pygame
-        #sys.exit()      # beendet python
+        sys.exit()      # beendet python
 
 
 if __name__ == '__main__':
