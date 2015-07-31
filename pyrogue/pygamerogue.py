@@ -530,25 +530,25 @@ class Level(object):
         return False
 
 
-class Healthbar(pygame.sprite.Sprite):
-    def __init__(self, boss):
-        """a healthbar hovering over a monster"""
-        self._layer = 6
-        self.boss = boss
-        pygame.sprite.Sprite.__init__(self, self.groups)
-        self.image = pygame.Surface((32,4))
-        self.rect = self.image.get_rect()
-        self.update(0)
-
-    def update(self, seconds):
-        self.x, self.y = PygView.scrollx + self.boss.x * 32, PygView.scrolly + self.boss.y * 32
-        pygame.draw.rect(self.image, (255,255,255), (0,0,32,4))
-        pygame.draw.rect(self.image, (255,0,0    ), (1,1,31,3))
-        pygame.draw.rect(self.image, (0,0,255    ), (1,1,max(31, boss.hitpoints),3)) # zeigt maximal 31 hitpoints an
-        self.image.convert()
-        self.rect.center = (PygView.scrollx + self.boss.x * 32, PygView.scrolly + self.boss.y * 32)
-        if self.boss.hitpoints < 1:
-            self.kill()
+#class Healthbar(pygame.sprite.Sprite):
+#    def __init__(self, boss):
+#        """a healthbar hovering over a monster"""
+#        self._layer = 6
+#        self.boss = boss
+#        pygame.sprite.Sprite.__init__(self, self.groups)
+#        self.image = pygame.Surface((32,4))
+#        self.rect = self.image.get_rect()
+#        self.update(0)
+#
+#    def update(self, seconds):
+#        self.x, self.y = PygView.scrollx + self.boss.x * 32, PygView.scrolly + self.boss.y * 32
+#        pygame.draw.rect(self.image, (255,255,255), (0,0,32,4))
+#        pygame.draw.rect(self.image, (255,0,0    ), (1,1,31,3))
+#        pygame.draw.rect(self.image, (0,0,255    ), (1,1,max(31, boss.hitpoints),3)) # zeigt maximal 31 hitpoints an
+#        self.image.convert()
+#        self.rect.center = (PygView.scrollx + self.boss.x * 32, PygView.scrolly + self.boss.y * 32)
+#        if self.boss.hitpoints < 1:
+#            self.kill()
 
 
 class Flytext(pygame.sprite.Sprite):
@@ -633,6 +633,7 @@ class PygView(object):
         #------- portraits -----
         PygView.TRADER = pygame.image.load(os.path.join("images","hakim.png"))
         PygView.DRUID = pygame.image.load(os.path.join("images","druid.png"))
+        PygView.GAMEOVER = pygame.image.load(os.path.join("images","gameover.jpg"))
 
 
         # --------- Spieler einrichten --------------
@@ -652,11 +653,11 @@ class PygView(object):
         #self.black = pygame.Surface((self.level.width*32, self.level.depth*32))
         # ------------ Sprite Groups -----------
         self.flytextgroup = pygame.sprite.Group()
-        self.bargroup = pygame.sprite.Group()
+        #self.bargroup = pygame.sprite.Group()
         self.allgroup = pygame.sprite.LayeredUpdates() # sprite group with layers
         # --------- Zuweisung der Sprite groups zu den einzelnen Sprite Class
         Flytext.groups = self.flytextgroup, self.allgroup
-        Healthbar.groups = self.bargroup, self.allgroup
+        #Healthbar.groups = self.bargroup, self.allgroup
         # ---------- sound and music ----------
         # sounds liegen im Verzeichnis "sounds", Musik liegt im Verzeichnis "music"
         PygView.bowsound = load_sound("bow.ogg")
@@ -753,9 +754,8 @@ class PygView(object):
         """The mainloop---------------------------------------------------"""
         self.clock = pygame.time.Clock() 
         running = True
-        self.status = ["The game begins!", "You enter the dungeon...", "Hint: Avoid traps",
-                       "Hint: Battle monsters", "Hint: Plunder!", "press ? for help", "good luck!"]
-
+        self.status = ["The game begins!", "You enter the dungeon...", "Hint: goto x:5 y:5",
+                       "Hint: avoid traps", "Hint: Plunder!", "press ? for help", "good luck!"]
         while running and self.player.hitpoints > 0:
             self.seconds = self.clock.tick(self.fps)/1000.0  # seconds since last frame
             for event in pygame.event.get():
@@ -917,25 +917,35 @@ class PygView(object):
             pygame.display.set_caption("  press Esc to quit. Fps: %.2f (%i x %i)"%(
                                 self.clock.get_fps(), self.width, self.height))
             self.paint()
+            #  ------- draw the sprites ------
             #self.allgroup.clear(self.screen, self.background)
             self.allgroup.update(self.seconds)
             self.allgroup.draw(self.screen)
-            #  ------- draw the sprites ------
+            # ---- proceed to next pygame screen
             pygame.display.flip()
+        #--------------------------- Game Over ----------------------
+        lines=[]
+        lines.append("**** Game Over *******")
+        lines.append("Hitpoints: {}".format(self.player.hitpoints))
+        lines.append("Level: {}".format(self.player.level))
+        lines.append("Rang: {}".format(self.player.rank))
+        lines.append("Siege: {}".format(self.player.kills))
+        if self.player.hitpoints < 1:
+            lines.append("Du bist tot.")
+        else:
+            lines.append("Du hast überlebt")
+        lines.append("-------------Dein Rucksack:----------")
+        for line in self.player.zeige_rucksack():
+            lines.append(line)
+        lines.append("------------ von dir besiegt wurden: ------------")
+        for v in self.player.killdict:
+            lines.append("{} {}".format(self.player.killdict[v], v))
+        display_textlines(lines, self.screen,  (255,255,255), PygView.GAMEOVER)
         # ------------ game over -----------------
         pygame.mixer.music.stop()
-        print("**** Game Over *******")
-        print("Hitpoints: {}\nTurns: {}\nXP: {}\nLevel: {}\nRank: {}\nKills: {}".format(self.player.hitpoints,
-              self.turns, self.player.xp, self.player.level, self.player.rank, self.player.kills))
-        if self.player.hitpoints < 1:
-           print("=========Du bist tot==========")
-        lines = self.player.zeige_rucksack()
-        print("Dein Rucksack:")
         for line in lines:
             print(line)
-        print("======= Deine Kills =======")
-        for v in self.player.killdict:
-            print(v, ":", self.player.killdict[v])
+     
         pygame.quit()    # beendet pygame
         sys.exit()      # beendet python
 
