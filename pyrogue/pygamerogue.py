@@ -30,6 +30,48 @@ def write(msg="pygame is cool", fontcolor=(255,0,255), fontsize=42, font=None):
     return mytext
 
 
+def ask(question, screen,  image=None, x=-1, y=-1, center=True,  imagex=0, imagey=0):   # from pygame newsgroup
+    """ask(screen, question) -> answer"""
+    pygame.font.init()
+    text = ""
+    line = write(question)
+    screen.blit(line, (x, y))
+    pygame.display.flip()
+    if x == -1:
+        x = PygView.width // 3
+    if y == -1:
+        y = 0
+    while True:
+        pygame.time.wait(50) # wartet 50 millisekunden?
+        #event = pygame.event.poll()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type != pygame.KEYDOWN:
+                continue
+            elif event.key == pygame.K_BACKSPACE:
+                text = text[0:-1]
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                if text == "":
+                    continue
+                return text
+            elif event.key == pygame.K_ESCAPE:
+                continue
+                #return "Dorftrottel"
+            elif event.key <= 127:
+                text += chr(event.key)
+        line = write(question + ": " + text)
+        screen.fill((0,0,0))
+        screen.blit(line, (x, y))
+        if image:
+            if not center:
+                screen.blit(image, (imagex, imagey))
+            else:
+                screen.blit(image, (PygView.width // 2 - image.get_rect().width // 2, 50))
+        pygame.display.flip()
+
+
 def display_textlines(lines, screen, color=(0,0,255), image=None, center=True, imagex=0, imagey=0):
     """zeigt (scrollbare) Text linien, wartet auf ENTER Taste"""
 
@@ -149,37 +191,6 @@ def load_music(file):
         print('Warning, unable to load,',file)
     return NoSound()
 
-
-def ask(question, x, y, screen):   # from pygame newsgroup
-    """ask(screen, question) -> answer"""
-    pygame.font.init()
-    text = ""
-    line = write(question)
-    screen.blit(line, (x, y))
-    pygame.display.flip()
-    while True:
-        pygame.time.wait(50) # wartet 50 millisekunden?
-        #event = pygame.event.poll()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type != pygame.KEYDOWN:
-                continue
-            elif event.key == pygame.K_BACKSPACE:
-                text = text[0:-1]
-            elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                if text == "":
-                    continue
-                return text
-            elif event.key == pygame.K_ESCAPE:
-                return "Dorftrottel"
-            elif event.key <= 127:
-                text += chr(event.key)
-        line = write(question + ": " + text)
-        screen.fill((0,0,0))
-        screen.blit(line, (x, y))
-        pygame.display.flip()
 
 
 class NoSound(object):
@@ -414,7 +425,10 @@ class Stair(Block):
             self.bild = PygView.STAIRDOWN
         else:
             self.down = False
-            self.bild = PygView.STAIRUP
+            self.bild = pygame.Surface((32,32))
+            self.bild.blit(PygView.FLOOR, (0,0))  # stairup hat hässliche schwarze Ecke, sollte transparent sein
+            self.bild.blit(PygView.STAIRUP, (0,0))
+            self.bild.convert_alpha()
         self.target = (0,0,0) # x,y,z
 
 
@@ -639,7 +653,7 @@ class PygView(object):
         PygView.TRAP  = PygView.FEAT.image_at((30, 128, 32, 32), (0, 0, 0))
         PygView.PLAYERBILD = PygView.FIGUREN.image_at((111, 1215, 32, 32), (0, 0, 0))
         PygView.STAIRDOWN = PygView.FEAT.image_at((32*4, 32*5, 32, 32))
-        PygView.STAIRUP  = PygView.FEAT.image_at((32*5, 32*5, 32, 32))
+        PygView.STAIRUP  = PygView.FEAT.image_at((32*5, 32*5, 32, 32), (0, 0, 0))
         PygView.MONSTERBILD  =  PygView.FIGUREN.image_at((0, 0, 32, 32), (0, 0, 0))
         PygView.DOOR  = PygView.FEAT.image_at((32*2, 32, 32, 32))
         PygView.LOOT  = PygView.MAIN.image_at((155, 672, 32, 32), (0, 0, 0))
@@ -654,7 +668,7 @@ class PygView(object):
         # --------- Spieler einrichten --------------
         self.player = Player(x, y, xp, level, hp)
         # Spieler nach seinem Namen fragen
-        self.player.name = ask("Dein Name [Enter]? >>", int(self.width/3), int(self.height/2), self.screen )
+        self.player.name = ask("Dein Name [Enter]? >>", self.screen, PygView.DRUID )
         self.player.name = self.player.name[0].upper() + self.player.name[1:].lower()
         self.levels = []
         for filename in levelnames:
