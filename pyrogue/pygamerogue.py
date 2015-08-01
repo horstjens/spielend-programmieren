@@ -14,6 +14,9 @@ Author:  Horst JENS
 Email: horstjens@gmail.com
 Licence: gpl, see http://www.gnu.org/licenses/gpl.html
 descr: a rogue game using python + pygame. graphics from dungeon crawl stone soup
+and sound and graphics from battle of Wesnoth. please see readme.txt for license
+details. This is the German language version for my students at
+http://spielend-programmieren.at
 """
 
 import pygame
@@ -107,7 +110,7 @@ def display_textlines(lines, screen, color=(0,0,255), image=None, center=True, i
 
 
 
-def kampfrunde(m1, m2):
+def kampfrunde(m1, m2, level):
     """Eine Kampfrunde (Schlag). Beste Waffe bzw. beste Rüstung hat Priorität"""
     txt = []
     if m1.hitpoints > 0 and m2.hitpoints > 0:
@@ -151,6 +154,7 @@ def kampfrunde(m1, m2):
             m2.hitpoints -= damage
             txt.append("Kampf: {} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
             if m2.hitpoints < 1:
+                # ---------- m2 wurde besiegt,  ----------------
                 exp = random.randint(7, 10)
                 m1.xp += exp
                 m1.kills += 1
@@ -163,6 +167,10 @@ def kampfrunde(m1, m2):
                 line = m1.check_levelup()
                 if line:
                     txt.append(line)
+                if random.random() < 0.25:    # 25% Chance, essen zu droppen
+                    level.loot.append(Loot(m2.x, m2.y, "Fleischreste"))
+
+
         else:
             txt.append("Kampf: {} bleibt unverletzt".format(m2.name))
     return txt
@@ -354,6 +362,8 @@ class Player(Monster):
         self.z = 0
         self.keys = []
         self.druid_visited = False
+        self.hunger = 0
+        self.mana = 0
         if hp == 0:
             self.hitpoints = random.randint(5,10)
         else:
@@ -477,11 +487,13 @@ class Door(Item):
 
 
 class Loot(Item):
-    def __init__(self, x, y):
+    def __init__(self, x, y, descr=""):
         Item.__init__(self, x, y)
-        self.text = random.choice(["Müll", "Knochen", "Münze", "Taschenmesser", "Stoffreste",
-             "Essbesteck", "Spielzeug", "Schwert", "Rüstung",
-             "Edelstein", "Heiltrank", "Schild"])
+        if descr == "":
+            self.text = random.choice(["Müll", "Knochen", "Münze", "Taschenmesser", "Stoffreste",
+                 "Essbesteck", "Spielzeug", "Schwert", "Rüstung", "Edelstein", "Heiltrank", "Schild", "Brot"])
+        else:
+            self.text = descr
 
 class Level(object):
     def __init__(self, dateiname):
@@ -710,6 +722,7 @@ class PygView(object):
         self.hilftextlines.append("[Esc]................Spiel verlassen")
         self.hilftextlines.append("[h]..................help, diesen Hilfstext anzeigen")
         self.hilftextlines.append("[q]..................Heiltrank trinken (quaff potion")
+        self.hilftextlines.append("[e]..................essen (eat)")
         self.hilftextlines.append("[Enter]..............eine Runde warten")
         self.hilftextlines.append("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
 
@@ -761,6 +774,8 @@ class PygView(object):
         self.screen.blit(line, (self.width / 2, self.height - gui_height + 16*2))
         line = write("Anzahl Monster hier: {} insgesamt: {}".format(self.mo1, self.mo2), (0, 255, 0), 24)
         self.screen.blit(line, (self.width / 2, self.height - gui_height + 16*3))
+        line = write("Hunger: {}".format(self.player.hunger), (0, 255, 0), 24)
+        self.screen.blit(line, (self.width / 2, self.height - gui_height + 16*4))
         # ---- paint status messages ----- start 200 pixel from screen bottom
         for number in range(-7, 0, 1):
             if self.status[number][:6] == "Kampf:":
@@ -791,6 +806,12 @@ class PygView(object):
                     wo = self.level.layout[(self.player.x, self.player.y)]
                     self.status.append("Turn {}".format(self.turns))
                     self.turns += 1
+                    if self.player.mana < 32:
+                        self.player.mana += 1
+                    self.player.hunger += 1
+                    if self.player.hunger > 100:
+                        self.player.hitpoints-=1
+                        Flytext(self.player.x, self.player.y, "Hunger: dmg 1" )
                     if event.key == pygame.K_ESCAPE:
                         running = False
                     self.player.dx = 0
@@ -842,13 +863,21 @@ class PygView(object):
                             else:
                                 self.status.append("{}: In Deinem Rucksack befindet sich kein Heiltrank. Sammle Loot!".format(
                                                    self.turns))
+                    elif event.key == pygame.K_e:
+                        essen = [i for i in self.player.rucksack if i=="Brot" or i =="Fleischreste"]
+                        if len(essen) > 0:
+                            self.player.rucksack[essen[0]]-=1
+                            Flytext(self.player.x, self.player.y, "mmmm, lecker {}".format(essen[0]))
+                            self.player.hunger -= random.randint(5, 30)
+                        else:
+                            self.status.append("In Deinem Rucksack ist nichts essbares. Besiege Gegner oder sammle Loot")
                     # --------------- new location ----------
                     # wohin: Block (Floor, Wall, Stair)
                     wohin = self.level.layout[(self.player.x+self.player.dx,self.player.y+self.player.dy)]
                     monster = self.level.is_monster(self.player.x+self.player.dx, self.player.y+self.player.dy)
                     if monster:     # ---- Kampf: Spieler läuft in Monster hinein -----
-                        self.status.extend(kampfrunde(self.player, monster))
-                        self.status.extend(kampfrunde(monster, self.player))
+                        self.status.extend(kampfrunde(self.player, monster, self.level))
+                        self.status.extend(kampfrunde(monster, self.player, self.level))
                         self.player.dx, self.player.dy = 0, 0
                         self.count_monsters()
                     # ----- testen ob Spieler gegen Wand läuft
@@ -895,6 +924,21 @@ class PygView(object):
                         self.player.rucksack["Belohnung: Halbes Königreich"] = 1
                         self.player.rucksack["Belohnung: Freundschaft der Druiden"] = 1
                         running = False
+                    #    ------- Story 3: Player zerstört Statue und geht in level zu Position wo die Statue war (18,14)
+                    if self.player.z == 1 and self.player.x == 14 and self.player.y == 18:
+                        # Da an dieser Position eine Statue stand hat der Spieler sie anscheinend besiegt
+                        Flytext(self.player.x, self.player.y, "was passiert jetzt?" ,(255,255,255))
+                        # Mauern durch Floor ersetzen damit eingesperrte Bosse und Monster zum Spieler laufen können
+                        self.level.layout[(7,17)] = Floor()  # wall der dort stand durch Floor ersetzen
+                        self.level.layout[(7,18)] = Floor()
+                        self.level.layout[(7,19)] = Floor()
+                        self.level.layout[(23,17)] = Floor()
+                        self.level.layout[(23,18)] = Floor()
+                        self.level.layout[(23,19)] = Floor()
+                        self.level.layout[(14,20)] = Floor()
+                        self.level.layout[(14,11)] = Floor()
+                        # erzeuge Monster auf Stiege x:1 y:1:
+                        self.level.monsters.append(Statue(1,1))
                     # ------------- Hinweis-schilder ----------
                     for sign in self.level.signs:
                         if sign.x == self.player.x and sign.y == self.player.y:
@@ -943,8 +987,8 @@ class PygView(object):
                         if self.level.is_monster(x + dx, y + dy):
                             continue  # Monster wollte in anderes Monster laufen, wartet stattdessen
                         if x+dx == self.player.x and y+dy == self.player.y:
-                            self.status.extend(kampfrunde(monster, self.player))
-                            self.status.extend(kampfrunde(self.player, monster))
+                            self.status.extend(kampfrunde(monster, self.player, self.level))
+                            self.status.extend(kampfrunde(self.player, monster, self.level))
                             self.count_monsters()
                             continue     # Monster würde in player hineinlaufen, kämpft stattdessen
                         wohin = self.level.layout[(x+dx, y+dy)]
