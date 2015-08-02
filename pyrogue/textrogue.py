@@ -200,10 +200,8 @@ class Level(object):
             y += 1
 
 
-def game():
-    levels = [Level("level1.txt"),
-              Level("level2.txt")]
-    p = Player(1, 1, 50)              # Spieler startet mit 50 hitpoints auf Position 1,1
+def game(levels , playerx=1, playery=1, playerhp=50):
+    p = Player(playerx, playery, playerhp)              # Spieler startet mit 50 hitpoints auf Position x:1,y:1
     status = ""
     while p.hitpoints > 0:            # so lange der player mehr als null hitpoints hat
         level = levels[p.z]
@@ -296,4 +294,5 @@ def game():
     p.zeige_rucksack()
 
 if __name__ == "__main__":
-    game()
+    # Spieler startet in level1.txt auf position x1,y1 mit 50 hitpoints
+    game([Level("level1demo.txt"), Level("level2demo.txt")], 1, 1, 50)
