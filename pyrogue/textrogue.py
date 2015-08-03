@@ -8,11 +8,9 @@ except NameError:                      # nur wichtig für python version2
 
 import random    # ab hier ist der code für python3 und python2 gleich
 
-
 def wait(msg="drücke ENTER"):
     a = input(msg)
     return a
-
 
 def loot():
     """erzeuge einen zufälligen Gegenstand"""
@@ -20,7 +18,6 @@ def loot():
              "Essbesteck", "Spielzeug", "Schwert", "Rüstung",
              "Edelstein", "Heiltrank", "Schild"]
     return random.choice(zeugs)   
-
 
 def hilfe():
     """zeigt hilfstext, wartet auf ENTER Taste"""
@@ -44,7 +41,6 @@ def hilfe():
     print("[!]..................Schild")
     print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
     wait()
-
 
 def kampfrunde(m1, m2):
     txt = []         # """ Spieler kämpft gegen Monster Object"""
@@ -72,7 +68,6 @@ def kampfrunde(m1, m2):
             txt.append("{} verliert {} hitpoints ({} hp übrig)".format(m2.name, damage, m2.hitpoints))
         else:
             txt.append("{} bleibt unverletzt".format(m2.name))
-    #return txt
     for line in txt:
         print(line)
     wait()
@@ -139,7 +134,7 @@ class Level(object):
                 else: 
                     x = 0
                     for char in line[:-1]:
-                        if char == "M":
+                        if char == "M" or char == "B" or char =="S":
                             self.monsters.append(Monster(x, y))
                             goodline += "."
                         else:
@@ -167,7 +162,8 @@ class Level(object):
         """bewegt Monster zufällig (oder gar nicht)"""
         for monster in self.monsters:
             x, y = monster.x, monster.y
-            dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
+            dirs = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0),
+                    (-1, -1), (0, -1), (1, -1)]
             dx, dy = random.choice(dirs)
             if self.is_monster(x + dx, y + dy):
                 continue
@@ -209,7 +205,7 @@ def game(levels , playerx=1, playery=1, playerhp=50):
         print(status)                 
         dx, dy = 0, 0
         status = ""                   # ----------- ask ----------------------  
-        a = input("was jetzt? hp: {} keys: {} >".format(p.hitpoints, p.keys))
+        a = input("hp:{} keys:{} was nun?>".format(p.hitpoints, p.keys))
         if a == "exit" or a == "quit" or a == "Q":  # ----- quit ------
             break    
         elif a == "i":                # --------- inventory --------
@@ -230,6 +226,7 @@ def game(levels , playerx=1, playery=1, playerhp=50):
         elif a == "<":                 # ------ level up
             if level.lines[p.y][p.x] != "<":
                 status = "Du musst erst eine Stiege nach oben finden [<]"
+                continue
             elif p.z == 0:
                 print("Du verlässt den Dungeon und kehrst zurück an die Oberfläche")
                 break
@@ -237,6 +234,7 @@ def game(levels , playerx=1, playery=1, playerhp=50):
         elif a == ">":                  # ------ level down
             if level.lines[p.y][p.x] != ">":
                 status = "Du musst erst eine Stiege nach unten finden [>]"
+                continue
             p.z += 1
         elif a == "q":                  # --------- Heiltrank ------------
             if "Heiltrank" in p.rucksack and p.rucksack["Heiltrank"] > 0:
