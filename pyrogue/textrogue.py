@@ -114,12 +114,30 @@ class Player(Monster):
         else:
             self.rucksack[zeug] = 1
 
+class Item(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        
+class Trap(Item):
+    def __init__(self, x, y):
+        Item.__init__(self, x, y)
+        self.level = random.randint(1,6)
+        self.visible = 0
+        self.hitpoints = 2 * self.level
+        
+    def damage(self):
+        damage = 0
+        for _ in range(self.level):
+            damage += random.randint(1,6)
+        return damage
 
 class Level(object):
     def __init__(self, dateiname):
         """liest den dateinamen ein und erzeugt ein Level-Object"""
         self.lines = []
         self.schilder = {}       # schildnummer: schildtext
+        self.traps = []
         self.monsters = []
         self.sichtweite = 10
         with open(dateiname) as f:
@@ -137,6 +155,9 @@ class Level(object):
                         if char == "M" or char == "B" or char =="S":
                             self.monsters.append(Monster(x, y))
                             goodline += "."
+                        elif char == "T":
+                            self.traps.append(Trap(x,y))
+                            goodline += "."
                         else:
                             goodline += char
                         x += 1
@@ -146,6 +167,7 @@ class Level(object):
     def update(self):
         """löscht alle Monster die keine hitpoints mehr haben"""
         self.monsters = [m for m in self.monsters if m.hitpoints > 0]
+        self.traps = [t for t in self.traps if t.hitpoints > 0]
                     
     def ersetze(self, x, y, new="."):
         """ersetzt ein Zeichen in einem Level durch das new Zeichen"""
@@ -156,6 +178,18 @@ class Level(object):
         for monster in self.monsters:
             if monster.hitpoints > 0 and monster.x == x and monster.y == y:
                 return monster
+        return False
+        
+    def is_visible_trap(self,x,y):
+        for trap in self.traps:
+            if trap.hitpoints >0 and trap.x == x and trap.y == y and trap.visible:
+                return trap
+        return False
+        
+    def is_trap(self, x,y):
+        for trap in self.traps:
+            if trap.hitpoints >0 and trap.x == x and trap.y == y:
+                return trap
         return False
         
     def move_monster(self, player):
@@ -187,6 +221,8 @@ class Level(object):
                     print("@", end="")
                 elif self.is_monster(x, y):
                     print("M", end="")
+                elif self.is_visible_trap(x, y):
+                    print("T", end="")
                 elif char in "123456789":
                     print("!", end="")
                 else:
@@ -264,15 +300,28 @@ def game(levels , playerx=1, playery=1, playerhp=50):
             p.x += dx
             p.y += dy   # ----------------- spieler ist an einer neuen position --------
         wo = level.lines[p.y][p.x]                # wo bin ich jetzt
-        if wo in "123456789":
-                status = "hier steht: " + level.schilder[wo]
-        elif wo == "T":                           # in die Falle gelaufen?
-            schaden = random.randint(1, 4)
+        trap = level.is_trap(p.x, p.y)
+        if trap:
+            #elif wo == "T":                           # in die Falle gelaufen?
+            schaden = trap.damage()
             status = "aua, in die Falle gelaufen. {} Schaden!".format(schaden)
             p.hitpoints -= schaden
-            if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
-                level.ersetze(p.x, p.y, ".")
-                status += " Falle kaputt!"
+            trap.hitpoints -= random.randint(1,4)
+            trap.visible = 0
+            #if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
+            #    trap.hitpoints = 0
+            #    level.ersetze(p.x, p.y, ".")
+            #    status += " Falle kaputt!"
+        # benachtbarte Fallen sichtbar machen mit 10% Chance
+        for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
+            trap =  level.is_trap(p.x+dx, p.y+dy)
+            if trap:
+                if random.random() < .1:  # 10% chance
+                    trap.visible = True
+                    
+        
+        if wo in "123456789":
+                status = "hier steht: " + level.schilder[wo]
         elif wo == "k":                           # schlüssel gefunden? 
             status = "Schlüssel gefunden!"
             p.keys += 1
