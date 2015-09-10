@@ -308,11 +308,7 @@ def game(levels , playerx=1, playery=1, playerhp=50):
             p.hitpoints -= schaden
             trap.hitpoints -= random.randint(1,4)
             trap.visible = 0
-            #if random.random() < 0.5:             # 50% Chance # Falle verschwunden?
-            #    trap.hitpoints = 0
-            #    level.ersetze(p.x, p.y, ".")
-            #    status += " Falle kaputt!"
-        # benachtbarte Fallen sichtbar machen mit 10% Chance
+
         for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
             trap =  level.is_trap(p.x+dx, p.y+dy)
             if trap:

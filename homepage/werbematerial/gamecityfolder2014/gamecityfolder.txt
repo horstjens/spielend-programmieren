@@ -1,0 +1,191 @@
+﻿{Franz: die Screenshots haben immer den gleichen Anfangsnamen wie das beschriebene Spiel
+bitte noch stallmann-Foto und cc-by logo einfügen. Impressum ev. ändern auf FSFE}
+
+freie (free/libre/open source) Spiele 
+
+
+Freie Software (z.B. Spiele) gewährt dem Nutzer (Spieler) gemäß der Definition der Free Software Foundation (FSFE.org)  folgende 4 Grundfreiheiten, die Richard Stallman in der GPL-Lizenz definiert hat (http://www.gnu.org/philosophy/free-sw.de.html), nämlich:
+
++Freiheit 0: use: Die Freiheit, das Programm auszuführen wie man möchte, für jeden Zweck 
++Freiheit 1: study: Die Freiheit, die Funktionsweise des Programms zu untersuchen und zu verändern. . Der Zugang zum Quellcode (Sourcecode) ist dafür Voraussetzung.
++Freiheit 2: share: Die Freiheit, das Programm weiterzuverbreiten und damit seinen Mitmenschen zu helfen 
++Freiheit 3: improve: Die Freiheit, das Programm zu verbessern und diese Verbesserungen der Öffentlichkeit freizugeben, damit die gesamte Gemeinschaft davon profitiert. Der Zugang zum Quellcode ist dafür Voraussetzung.
+
+Unfreie (=proprietäre) Software erlaubt keine dieser Freiheiten. So ist z.B. bei unfreien Spielen die Benutzung nur auf bestimmten Betreibssystemen möglich oder nur unter gewissen Bedingungen (online-Zwang) – kein freedom 0: to use as you wish.  Da der Quellcode (wie ein Programm programmiert wurde) nicht veröffentlicht wird und dessen Veröffentlichung sogar rechtlich behindert wird, ist es nicht möglich aus einem unfreien Spiel etwas über das Programmieren zu lernen – kein freedom 1: to study.  Gegen die Freiheit, ein Spiel mit Freunden zu teilen (freedom2: share) läuft eine PR-Kampagne die diese Freiheit mit Piraterie (Kapern von Schiffen) vergleicht. Freie Software ist in der Praxis nicht von Altersfreigabesystemen und politischen Zensurmechanismen betroffen, da diese meist auf ein Verkaufs- bzw. Bewerbeverbot abzielen.  Die Freiheit, ein Programm zu verbessern und zu verändern (Freedom 3: improve) -bei Spielen als Mod (=Modifikation, Änderung) bekannt, z.B. sind Counterstrike oder DOTA  Mods von unfreien Spielen- ist rechtlich oft gar nicht erlaubt sondern maximal geduldet. 
+
+Nicht wirklich frei:
+Andere Begriffe wie Freeware ( darf kostenlos erworben und verbreitet werden), Shareware (darf verbreitet werden), Free-to-play (darf kostenlos, meist im Internet, gespielt werden, kann aber kostenpflichtige Spielelemente enthalten), Demo/Crippleware (unvollständiges Spiel welches verbreitet werden darf) erfüllen nicht die 4 Grundfreiheiten der GPL Lizenz und sind daher nicht freie Software sondern nur etwas weniger unfrei.
+
+Kostenlos: 
+Freie Spiele sind zwar oft kostenlos erhältich, es ist aber durchaus legal für freie Software Geld zu verlangen (freedom 0: use). Nicht legal ist es das Kopieren von freier Software zu verbieten. Möglichkeiten, mit freier (Spiele)-Software Geld zu verdienen sind unter anderem: Spenden für die Weiterentwicklung sammlen, Vorab-finanzierung (z.B. via Kickstarter), die Trennung von Sourcecode und Artwork (Grafiken/Musik/Texte), wobei der nur der Programmcode frei ist, sowie das kommerzielle Anbieten von Dienstleistungen (Services), z.B. das Betreiben eines Servers für Multiplayer-Spiele oder das Verwalten einer weltweiten Ranking-Liste.
+
+Bei-Spiele
+
+Alleine das Repository der Linux-Distribution „Ubuntu“ listet unter dem Eintrag „games“ mehr als tausend Einträge, und das sind bei weitem nicht alle erhältlichen freien (free/libre/open source) Spiele. Anbei eine kleine Auswahl mit Vertretern typischer Spiele-Genres. Alle diese Spiele laufen auf dem freien Betriebssystem Linux sowie meistens auch unter anderen, unfreien Betriebssystemen.
+
+
+Name: Ufoai
+Web: http://ufoai.org/
+Spieler: Singleplayer, bis zu 6 Spieler via LAN möglich
+Technik: 3D-Karte notwendig (OPENGL), Map-Editor vorhanden. Übersetzer gesucht!
+Genre: Strategie/Taktikspiel mit Science-Fiction Setting. Rundenbasierte Kämpfe in 3D Engine. Strategiemodus läuft in pausierbarer Echtzeit.
+Siehe auch: Ufoai ist eine Hommage an die Xcom Spiele aus den 90er Jahren, allerdings mit einer modernen 3D Grafik (Quake2 Engine). Story, Texte und Waffen orientieren sich am ersten Xcom Spiel (Ufo defense).
+In Kürze: Die Menschheit wird von Außerirdischen in fliegenden Untertassen bedroht, Städte werden terrorisiert und Menschen entführt. Als Sieler errichtet man im Strategie-Modus Basen auf einer drehbaren 3D-Weltkarte, forscht an neuen Waffen, managt Basen, Abfangjäger, Soldaten und Personal und versucht durch erfolgreiche Abwehreinsätze Geld von den einzelnen Nationen zu bekommen. Gesichtete Ufos werden mit Abfangjägern bekämpft, abgeschossene Ufos (oder angegriffene Städte) erforscht der Spieler in einer rundenbasierten, 3D-Taktik-Karte, wobei jeder einzelne Soldat einzeln gesteuert wird. 
+Bildunterschrift: Einsatz auf der zoom-und drehbaren 3D-Taktik-Karte: Die mehrgeschoßige Villa in der Bildschirmmitte muss von Aliens gesäubert werden, anschließend kann das gelandete UFO gestürmt werden.
+
+
+Name: Freeciv
+Web: http://freeciv.wikia.com/
+Spieler: Singleplayer, bis zu 126 Spieler (LAN, Internet, Hotseat)
+Technik: Download für jedes Betriebssystem, zusätzlich im Browser spielbare HTML5 Version 
+Genre: 4x (Explore, Expand, Exploit, Exterminate) Game, rundenbasiertes Welteroberungs-Strategiespiel
+Siehe auch: Sid'Meiers Civilisation (1991) welches wiederum auf einem Brettspiel beruht. FreeCol. 
+In Kürze: Menschheitsgeschichte zum nachspielen: Auf einer Scrollbaren 2D Karte beginnt man 3.000 vor Christus mit einer mickrigen Siedler Einheit eine unbekannte, zufallsgenerierte Welt zu erkunden. Rundenweise bewegt man seine Einheiten, gründet Städte, baut Straßen und Infrastruktur, erobert Babarendörfer und Mitspieler-Nationen, investiert Geld in Forschung, sozialen Frieden und Militär. Spielziel ist entweder Erreichen der Weltherrschaft oder als Erster mit dem Bau eines Auswanderungsraumschiffes fertig zu werden.
+Bildunterschrift: Brasilien (Bildmitte) ist dicht besiedelt, mit gut ausgebauter Infrastruktur (Eisenbahn, Straßen). 
+
+
+Name: Freecol
+Web: http://www.freecol.org/
+Spieler: 1 - 8												
+Technik: in Java programmiert
+Genre: 4x, rundenbasiertes Strategiespiel über die Kolonisierung Amerikas.
+Vorfahren: Sid' Meiers Colonisation (1994)
+In Kürze: Ähnlich wie in Freeciv beginnt der Spieler mit einem kleinen Schiff und wenigen Siedlern 1492 die (zufallsgenerierte) „neue Welt“ zu besiedeln. Im Gegensatz zu Freeciv liegt der Fokus in diesem Spiel stärker auf der Spezialisierung von Einheiten (Tabak-Pflanzer, Waffenschmied) und dem diplopmatisch, wirtschaftlich und militärischem Beziehungsmanagement zu Eingenbornen-Nationen und anderen Kolonialmächten. Endziel vom Spiel ist es erfolgreich die Unabhängigkeit vom europäischen Mutterland auszurufen und gegen die darauffolgende Invasion der Kontinental-Armee zu bestehen.
+Bildunterschrift: Freecol bringt stimmungsvolle Zeitungsnachrichten zu historischen Anlässen.
+
+Name: Battle of Wesnoth
+Web: http://www.wesnoth.org/
+Spieler: 1 - 2
+Technik: Map- und Mission-Editor vorhanden. Sehenswerte (frei-lizensierte) handgezeichnete Einheiten-Grafiken.
+Genre: rundenbasierte Hexfeld Strategie in Fantasy-Setting
+siehe auch: Battle Isle, Fantasy General, Advanced Strategic Command
+In Kürze: In diesem Vorzeigeprojekt der freien Software spielt man in einer schönen, handgezeichneten Fantasywelt mit Einheiten wie Menschen, Zwergen und Trollen epische Schlachten und Feldzüge nach. Jede Einheit (Bogenschütze, Skelette, Waldläufer etc.) hat unterschiedliche Eigenschaften wie Trefferpunkte, Bewegung, Fern- und Nahkampfwerte. Eine große Rolle spielt das taktisch geschickte Manövrieren und Umzingeln kämpfender Einheiten. Neue Einheiten dürfen nur in Burgen rekrutiert werden, das dazu nötige (stets zu knappe) Geld wird durch Besetzen von Dörfern verdient. Veteranen-Einheiten bekommen bessere Fähigkeiten und dürfen im Rahmen einer Kampagne ins nächste Szenario mitgenommen werden.
+Bildunterschrift: Die Einheit in der unteren Burg fügt dem Angreifer im Norden 3 Schadenspunkte zu.
+
+Name: Flight Gear
+Web: http://www.flightgear.org/
+Spieler: 1 
+Technik: 3D-Karte notwendig
+Genre: Flugsimulator
+siehe auch: Flight Simulator, gl117 (freier Action-Flugsimulator) 
+In Kürze: ein freier Flugsimulator für den Hobbypilot. Simuliert werden möglichst detailgetreu einmotorige Sportflugzeuge, daneben gibt es einige „Spaß“-Flugzeuge wie z.B. fliegende Untertassen.
+Bildunterschrift: 3D Grafik mit echten (open source/open data) Landschaftsdaten
+
+Name: bzflag
+Web: http://bzflag.org/
+Spieler: 2 - 16
+Technik: 3D-Karte und Internetverbindung erforderlich
+Genre: 3D-Echtzeit Multiplayer Kampf mit Vektor-Panzern
+siehe auch: Battlezone, Egoshooter
+In Kürze: Ein sehr eigenwilliger Egoshooter bei dem man nicht eine Person mit unterschiedlichen Waffen steuert sondern eine Art 3D-Panzer mit langer Nachladezeit, der dafür hüpfen kann. In den Polygon-Arenen spielt man in Teams, nützt Pyramiden und Würfel als Deckung und achtet auf abprallende Schüsse.
+Bildunterschrift: Eine der oft kargen Vektorgrafik-Landschaften von bzflag  
+
+Name: trigger rally
+Web: https://triggerrally.com/
+Spieler: 1 
+Technik: 3D Karte erforderlich, HTML5 Version im Browser spielbar, Streckeneditor (auch online) vorhanden
+Genre: Autorennspiel
+siehe auch: Tuxracer, Tuxcarts
+In Kürze: Mit einem Rallywagen durch unebene Pisten brettern
+Bildunterschrift: staubige Rennstrecken laden zum driften ein.
+
+Name: Minetest
+Web: http://www.minetest.net/
+Spieler: 1 - 50
+Technik: niedrigauflösende 3D-Grafik. Internetanbindung oder LAN für Mehrspielermodus erforderlich. Eigene Gegenstände per Skriptsprache LUA manipulierbar.
+Genre: Sandbox-Game
+siehe auch: Minecraft
+In Kürze: ein freier Nachbau des Minecraft Spiels. Der Spieler kann zufällig generierte 3D Klötzchenwelten bearbeiten, Materialien abbauen (minen), Gegenstände herstellen (Craften), Bergwerke nach Monstern durchsuchen oder beliebige Bauwerke erschaffen.
+Bildunterschrift: selbstgebaute Minetest-Landschaft
+
+
+
+Name: 0ad
+Web: http://play0ad.com/
+Spieler: 1 - 6
+Technik: 3D-Karte erforderlich. 
+Genre: Real-Time-Strategie Spiel im historischen Setting
+siehe auch: Age of Empires, Spring RTS
+In Kürze: Der Spieler bwegt in Echtzeit seine Anfangseinheiten auf einer schönen 3D-Karte umher, baut Resourcen (Steine, Holz, Korn etc.) ab, baut eine Stadt auf, erforscht und produziert bessere Einheiten und erobert feindliche Städte. 
+Bildunterschrift: 0Ad besticht durch schöne 3D Grafiken und historisch gut recherchierte Einheiten.
+
+
+
+Name: Dungeon Crawl Stone Soup (Crawl)
+Web: http://crawl.develz.org/wordpress/
+Spieler: 1 
+Technik: rundenbasiertes Dungeon-Erforschen. Große Bildschirmauflösung (Tiles-Modus) und Tastatur mit Ziffernblock empfehlenswert. Auch im Browser spielbar.  
+Genre: Rogue-Like 
+siehe auch: Nethack, Rogue, Diablo
+In Kürze: Das Konzept eines Rogue-likes ist schnell erklärt: Der Spieler muss in ein zufallsgeneriertes, mehrere Ebenen tiefes Verlies (=Dungeon) erforschen, Schätze finden, Fallen ausweichen und Monster bekämpfen. Crawl bietet dem Spieler mehrere Komfortfunktionen (automatische Dungeonerkundung) und befreit das Spiel von unnötigen Optionen, ohne dabei an Komplexität zu verlieren. Der Spieler wählt zu Spielbeginne eine Rasse (Zwerg, Katze, Zombie, Oktopus...) und einen Beruf (diverse Magier, Priester, Kämpfer und Hyprid-Klassen). Durch überleben von Kämpfen und sammen von Erfahrungspunkten steigt der Spieler im Level auf verbessert seine Fähigkeiten (er kann z.B. schwierigere Zaubersprüche lernen), während er gleichzeitig immer tiefer in den Dungeon hinabsteigt und immer gefährlichere Monster bekämft. Durch das optionale wählen (oder wechseln) einer Religion gewähren die im Spiel vorhandenen Götter diverse Boni, verlangen dafür aber Opfer oder Verhaltensregeln (z.B. das Verbot zu zaubern) und bestrafen Fehlverhalten. Spielzeil ist es, mindestens drei gut bewachte Runen zu finden und diese lebendig zurück zur Oberfläche zu bringen. Wie bei rogue-likes üblich herrscht Permadeath: Wenn die Spielfigur ihr Leben verliert, ist es nicht möglich einen älteren Sielstand zu laden.
+Bildunterschrift: Der Spieler (Mitte) hat ein paar Dämonen (mit Herz) beschwört. Der Frosch (oben) ist verwirrt oder hat den Spieler noch nicht bemerkt.
+
+
+Name: Neverball
+Web: http://neverball.org/
+Spieler: 1
+Technik: 3D-Karte erforderlich
+Genre: Geschicklichkeitsspiel
+siehe auch: Neverput, Marble Madness, Emilia Pinball Emulator, Gltron, Super Transball 2
+In Kürze: Balancieren Sie eine Kugel durch ein Labyrinth indem Sie nicht die Kugel steuern, sondern das ganze Labyrinth per Maus neigen und schwenken.
+Bildunterschrift: Der Spieler hat ein paar Münzen eingesammelt und damit den Levelausgang (Teleporter) freigeschaltet.
+
+
+Name: Frozen Bubble
+Web: http://www.frozen-bubble.org/
+Spieler: 1 - 2
+Technik:  
+Genre: für Nicht-Spieler, Kleinkinder und lange Telefongespräche geeignet
+siehe auch: Tetris
+In Kürze: farbige Kugeln mit gleichfarbigen Kugeln abschießen, damit diese herunterfallen und Punkte bringen. Gute Musik.
+Bildunterschrift: Der 2-Spieler Modus bietet einen Split-Screen
+Name: Pingus
+Web: http://pingus.seul.org/
+Spieler: 1
+Technik: 
+Genre: Geschicklichkeitsspiel
+siehe auch: Lemmings
+In Kürze: Ein freier Nachbau des Lemmings-Spiels, allerdings mit Pinguinen anstatt Lemmingen. Der Spieler muss in Echtzeit seinen stur umherwandernden Pinguinen (begrenzte) Spezialfähigkeiten verpassen, damit sie z.B. Tunnel graben oder oder Hindernisse überklettern können.
+Bildunterschrift: Der Pinguin mit Presslufthammer und Helm gräbt einen Tunnel zum Ausgang.
+
+Name: Mirrormagic
+Web: software-repository, z.B. https://apps.ubuntu.com/cat/applications/quantal/mirrormagic/
+Spieler: 1
+Technik: 
+Genre: Rätsel
+siehe auch: Boulder-Dash 
+In Kürze: einfaches Physikrätsel-Spiel: ein Lichtstrahl wird von drehbaren Spiegeln reflektiert und muss einen Zielspiegel erreichen. Dabei sind verschiedene Teile wie z.B. überhitzbare Glühbirnen, Prismen und verschiedenste Reflektoren zu beachten und zu manipulieren.
+Bildunterschrift: Die Zwerge halten drehbare Spiegel welche den Lichtstrahl (blau) reflektieren.
+
+Name: Tumiki Fighters
+Web: http://tumiki.sourceforge.net/
+Spieler: 1
+Technik: 
+Genre: sidescroller-shooter
+siehe auch: powermanga
+In Kürze: Der Spieler steuert ein Flugzeug welches von links nach rechts fiegt und dabei von riesigen Bauklötzchen-Monstern angegriffen wird. Durch abschießen und Aufsammeln der Klötze kann der Spieler sein Flugzeug ausbauen.
+Bildunterschrift: das aus aufgesammelten Klötzchen zusammengstoppelte Gebilde links ist das Flugzeug des Spielers
+
+Name: Hedgewars
+Web: http://www.hedgewars.org/
+Spieler: 1 - 8
+Technik:
+Genre: Artillerie-Spiel
+siehe auch: Sorced 3D, Worms
+In Kürze: Dieser freie Nachbau von Worms bietet Cartoon-Grafik und kleine Figuren, die sich in einer zerstörbaren, handgezeichneten 2D-Grafik mit unterschiedlichen Waffen bekämpfen. Dabei muss meist Abschusswinkel und -Geschwindigkeit eingestellt werden sowie Seitenwind berücksichtigt werden.
+Bildunterschrift: Die Spielfelder sind scrollbar und größer als dieser Bildausschnitt.
+
+
+
+
+Programmieren lernen:
+{Horst's Werbung, bitte Tuxstick2.png einfügen }
+
+Von freier Software selbst programmieren zu lernen und eigene (freie) (Apps oder Spiele-Projekte zu veröffentlichen ist erklärtes Kursziel der Programmierkurse für Kinder und Jugendliche bei Spielend-Programmieren. 100% free libre open source! Nähere Information über Kurszeiten, Ferienkurse, Preise, lostenlose Probestunden, Auftritte in Schulen und Veranstaltungen (Geburtstagsfeiern) finden Sie auf der Homepage: http://spielend-programmieren.at 
+
+Impressum, für den Inhalt verantwortlich:
+Horst JENS, Firma spielend-programmieren
+http://spielend-programmieren.at
+Brigittenauerlände 6, 1020 Wien, Österreich
+
+Alle Texte und Grafiken: cc-by
