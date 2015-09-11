@@ -42,5 +42,43 @@ Die Fragen werden reihum gestellt, jeder Spieler darf entwender eine Ja/Nein Fra
 Gewonnen hat wer als erster den Namen des vom Spielleiter gewählten Spiels sagen kann.
 Bei einem falschen Rateversuch scheidet man aus.
 
+{Franz}
+
+
+
+
+1) Ein Durchgang besteht darin, dass die "wissende Person" sich ein
+Spiel aussucht von dem sie die in der Broschüre beschriebenen Attribute
+auswendig weiß (oder dessen Attribute sie unsichtbar für die anderen
+nachschlagen kann). Sie sollte den Spielnamnen versteckt notieren um am
+Ende beweisen zu können, dass sie am Anfang dieses Spiel tatsächlich
+ausgewählt hatte.
+
+2) Jede Runde nennt die Wissende Person ein beliebiges von ihr gewähltes
+(in der Broschüre genanntes) in diesem Durchgang noch nicht verwendetes
+Attribut des Spiels. Die anderen können im Uhrzeigersinn nach einander
+entscheiden ob sie versuchen wollen das Spiel zu erraten. Wer rät, aber
+nicht die richtige Antwort gefunden hat, scheidet für diesen Durchgang
+aus.
+
+3) Sobald das Spiel von einer Person erraten wird, endet dieser
+Durchgang. Für jede Runde, in der das Spiel nicht erraten wurde, bekommt
+dann die "wissende Person" so viele Punkte, wie andere Leute am Spiel
+teilnehmen.
+Danach beginnt der nächste Durchgang indem die im Urzeigersinn nächste
+Person die Rolle der "wissenden Person" übernimmt.
+
+4) Ein "Kreis" ist fertig, wenn alle Personen, die am Spiel teilnehmen,
+einmal die "wissende Person" waren.
+
+Vor Beginn des Spiels muss vereinbart werden wie viele Kreise das
+Spieleraten haben soll. Die Person, die am Ende aller vereinbarten
+Kreise die meisten Punkte hat, hat das Spieleraten gewonnen.
+
+Falls nachgewiesen werden kann, dass im Spielverlauf eine "wissende
+Person" Fehlinformationen als Attribute genannt hat, verfallen ihre
+Punkte für diese Runde und alle anderen bekommen für jede
+Fehlinformation je einen Punkt gutgeschrieben.
+
 
 
