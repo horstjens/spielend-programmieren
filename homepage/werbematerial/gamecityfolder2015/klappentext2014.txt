@@ -1,0 +1,56 @@
+Nicht verwechseln!
+
+Freeware ist nur kostenlos verwendbar, 
+Shareware darf auch kostenlos weitergegeben werden
+Free-to-play ist kostenlos, meist im Internet, spielbar aber kostenpflichtige Spielelemente sind möglich.
+Demo/Crippleware sind unvollständige Spiele, die kostenlos gespielt und weitergeben werden dürfen, um zum Kauf der Vollversion zu animieren.
+Freie Software hingegen darf beliebig wervendet (#0 use), kopiert (#2 share) untersucht (#01 study) und umgebaut (#3 improve) werden. Veränderte Versionen dürfen veröffentlicht werden.
+
+
+Beschränkungen unfreier (=roprietärer) Spiele
+
+Unfreie Spiele sind oft auf bestimmte Betreibssysteme beschränkt / nur unter Bedingungen wie online-Zwang möglich (#0: use). Da der Quellcode (wie etwas programmiert wurde) nicht veröffentlicht wird und dessen Veröffentlichung sogar rechtlich verfolgt wird, kann niemand von einem unfreien Spiel programmieren lernen (#1: study). Das Teilen mit Freunden (#2: share) wird durch Gesetzgebung und PR-Kampagne mit Piraterie und Raub gleichsetzt. Ein unfreies Spiel zu modden (Mod = ändern) ist rechtlich nicht erlaubt sondern bestenfalls geduldet. Mods unfreier Spiele können jederzeit verboten werden (#3: improve). Freie Software schützt wirksam gegen Altersfreigaben und andere Zensurmaßnahmen, die meist auf ein Verkaufs- und Bewerbungsverbot hinauslaufen. 
+
+Freiheit vs. kostenlos
+
+Freie Software beinhält das REcht, damit Geld zu verdienen - inklusive Verkauf. Der Sourcecode von freier Software muss frei zugänglich sein. In der Praxis ist freie Software meist kostenlos zumindest im Interneth erhältlich, aber es gibt viele Möglichkeiten mit freier Software/Spielen Geld zu verdienen bzw. für freie Software zu zahlen:
+Bereitstellung von Binärpaketen, Bündelung mit Anleitungen, getrennte Lizensierung von Code und Artwork (Grafiken/Musik), Erbringung von Dienstleistungen wie z.B. tecchnischer Support, Hotlines, Betreiben von Multiplayer-Servern und Ranking-Listen, Vorfinanzierung via Crowdsourcing, Spenden und natürlich Verkauf.
+
+Programmieren lernen:
+
+Mit und von freien Spielen spielend programmieren zu lernen um eigene Apps oder Spiele-Projekte zu erschaffen und zu veröffentlichen ist das erklärte Kursziel der Firma spielend-programmieren. 100% free libre open source Programmierkurse für Kinder und Jugendliche. Informationen über Kursztieten, Ferienkurse, Preise, kostenlose Probestunden, Auftritte in Schulen und bei Veranstaltungen finden Sie auf der Homepage:
+
+Impressum:
+
+Horst JENS, Firma spielend-programmieren
+http://spielend-programmieren.at
+horst.jens@spielend-programmieren.at
+Brigittenauerlände 6, 1. Stock (BÜRO JENS)
+1020 Wien, Österreich, +43 660 52 65 377
+
+
+FSFE:
+Erstellt mit Unterstützung der Wiener Gruppe des Fellowships der FRee Software Foundation Europe fellowship.fsfe.org
+
+Die vier Grundfreiheiten
+
+Nur FREIE SOFTWARE gewährt dem Nutzer folgende 4 Grundfreiheiten gemäß der Definition der Free Software Foundation (FSFE.org), die Richtard STALLMAN in der GPL-Lizenz definiert hat (gnu.org/philosophy/free-sw.de.html), nämlich:
+
+0 USE
+Dei Freiheit, Software zu benutzen wie man möchte, für jeden Zweck
+
+1 STUDY
+Die Freiheit, Software zu utnersuchen und zu verändern, um daraus zu lernen. Vorraussetzung dazu ist der Zugang zum Quellcode (Sourcode) -> Open Source
+
+2 SHARE
+Die Freiheit, das Programm weiter zu verbreiten und mit Freunden zu teilen
+
+3 IMPROVE
+Die Freiheit, das Programm zu verändern und diese Veränderungen zu verbreiten. Voraussetzung dazu ist der Zugang zum Quellcode.
+
+Stallman-Zitat:
+non-free games are unethical...
+not because they cost money but because they take away your freedoms
+R.M.Stallman
+
+

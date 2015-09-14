@@ -1,0 +1,14 @@
+Titel: UfoAI
+Spieler: 1-2
+Technik: 3D-Karte erforderlich. Veränderte Quake2 3D-engine.
+Auflösung mindestens: 
+Sprachen: C, C++ (engine), Lua (ingame Skripte) 
+Art: 3D-Modelle, Beschreibungstexte
+Lizenz: Code: GPL. Artwork: Creative-Commons
+Genre: Rundentaktik / pausierbare Echtzeit für Aufbau und Forschung
+Website: http://ufoai.sf.net
+seit: 2006
+status: alpha
+Mithelfen: Leveleditor, 3D-Models, Issue Tracker, Übersetzten, 
+
+UfoAI ist eine Hommage an die XCOM-Spiele der frühen 90er Jahre, welche wiederum von der entsprechenden Fernsehserie aus den 60er Jahren inspieriert wurde. Die Menschheit befindet sich in einem Kampf gegen außerirdische Invasoren. In einer unterirdischen Kommandozentrale verwaltet der Spieler die knappen Resourcen der Menschheit und managt mit stets zu wenig Geld Forschung, Abfangjäger, Radaranlagen und Stütztpunkte. (pausierbare Echtzeit) Durch Abfangen von Ufos können Soldaten zur Absturzstelle geschickt werden, wobei der Spieler eine Gruppe Soldaten (Squad) im taktischen Rundenmodus kontrollieren muss um überlebende Außerirdische zu bekämpfen. Ziel ist es durch erfolgreiche Kämfe, Gefangen nehmen lebender Außerirdischer und Forschung an erbeuteter Außerirdischer Technologie immer bessere Waffen und Raumschiffe bauen zu können und als Menschheit zum Gegenangriff übergehen zu können.
