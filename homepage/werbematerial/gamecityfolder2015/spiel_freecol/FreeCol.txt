@@ -1,0 +1,11 @@
+Titel: FreeCol
+Spieler: 1-6
+Technik: 
+Sprachen: Java
+Lizenz: 
+Genre: Strategie, rundenbasiertes 4X-Spiel
+Website: http://www.freecol.org/
+seit: 2003
+
+
+FreeCol ist ein Nachbau des Computerspiel-Klassikers "Colonization" von (1994), in welchem der Spieler rundenweise als eine der Kolonialmächte die Besiedlung Amerikas in der Neuzeit (ab 1499) nachspielt. Im Gegensatz zu Civilisation liegt der Fokus hier mehr auf dem Entwickeln stabiler Wirtschaftskreisläufe (Verarbeitung von Rohstoffen zu gefragten Fertigwaren), während sich der Spieler gegen die immer wieder kriegerischen Konkurrenz anderer Kolonialmächte behaupten muss. Spielziel ist es die Unabhängigkeit vom Mutterland auszurufen und die darauf folgende Invasion der Kolonialmacht erfolgreich abzuwehren.

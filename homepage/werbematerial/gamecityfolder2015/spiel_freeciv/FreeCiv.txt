@@ -1,0 +1,11 @@
+Titel: FreeCiv
+Spieler: 1-126
+Technik: Am computer oder im Browser spielbar
+Sprachen: C, Lua
+Lizenz: GPL
+Genre: Strategie, rundenbasiertes 4X-Spiel
+Website: http://www.freeciv.org/
+seit: 1996
+
+
+FreeCiv ist ein Nachbau des Computerspiel-Klassikers "Civilization" (1991), welcher wiederum auf einem Brettspiel beruht. Der Spieler lenkt ein Volk von der Steinzeit bis in die nahe Zukunft und spielt die Menschheitsgeschichte nach: Unbesiedeltes Territorium wird erforscht und besiedelt, mit benachbarten Nationen werden Kriege geführt oder es wird Handel getrieben, an neuen Technologien wird geforscht um bessere militärische und zivile Einheiten produzieren zu können. Spielziel ist es, als erste Nation ein Raumschiff nach Alpha Centauri zu senden oder alle Konkurrenten militärisch zu besiegen. Die Spielzüge laufen abwechselnd rundenbasiert. Kämpfe sind sehr abstrakt dargestellt, das Spiel betont Strategie und nicht so sehr Taktik.

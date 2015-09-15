@@ -1,0 +1,10 @@
+Titel: Frozen Bubble
+Spieler: 1-2
+Sprachen: Perl, Java
+Lizenz: GPL
+Genre: Puzzle Game
+Website: http://www.freecol.org/
+seit: 2001
+Mithelfen: Level Editor
+
+Ein bei allen Altersgruppen beliebtes Geschicklichkeitsspiel: Drehe eine Harpune um damit langsam nach unten sinkende farbige Bälle abzuschießen. Aneinanderliegende gleichfarbige Bälle lösen eine Kettenreaktion aus.

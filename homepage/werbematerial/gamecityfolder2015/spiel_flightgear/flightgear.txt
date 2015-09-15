@@ -1,0 +1,11 @@
+Titel: FlightGear
+Spieler: 1
+Technik: 3D-Karte erforderlich. 
+Sprachen: C++, Nasal
+Lizenz: GPL
+Genre: Flugsimulator
+Website: http://www.flightgear.org/
+seit: 1997
+
+
+Flightgear wird weltweit von Flug-enthusiasten programmiert und gespielt und entstand ursprünglich deshalb weil die vorhanden proprietären Flugsimulatoren (Microsoft Flight Simulator) mangels frei verfügbarem Source-Code es unmöglich machten, von den Fans gewünschte Verbesserungen und Erweiterungen zu programmieren. Mehrere Flugzeugmodelle können geflogen werden, großer Wert wird auf Realismus gelegt.
