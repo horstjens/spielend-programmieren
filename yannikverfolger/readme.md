@@ -1,6 +1,10 @@
-install instruction:
+## install instruction
 
-install python3 and pygame
+download yannikverfolger.zip from https://github.com/horstjens/spielend-programmieren/tree/master/yannikverfolger
+
+extract the zip on your harddisk
+
+## install python3 and pygame
 
   * for linux:
     sudo apt-get install python3
@@ -12,7 +16,7 @@ install python3 and pygame
     install python3.2
     install pygame
     
-run the game
+## run the game
 
 linux:
 python3 yannik_verfolger.py
