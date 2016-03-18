@@ -211,7 +211,57 @@ class PygView(object):
                        myball2.x =self.width//3     
                        myball2.y =self.height//3
                        myball2.dx=0
-                       myball2.dy=0
+                       myball2.dy=0   
+                   if event.key == pygame.K_F9:
+                       myball2.hitpoints *=10
+                   if event.key == pygame.K_F10:
+                       myball2.hitpoints +=20
+                   if event.key == pygame.K_F1:
+                       myball1.hitpoints *=10
+                   if event.key == pygame.K_F2:
+                       myball1.hitpoints +=20
+                   if event.key == pygame.K_F3:
+                       myball1.hitpoints =100
+                   if event.key == pygame.K_F8:
+                       myball2.hitpoints =100 
+                   if event.key == pygame.K_F6:
+                       verfolger1.x=0
+                       verfolger1.y=0
+                       verfolger2.x=self.width
+                       verfolger2.y=0
+                       verfolger3.x=0
+                       verfolger3.y=self.height
+                       verfolger4.x=self.width
+                       verfolger4.y=self.height
+                   if event.key == pygame.K_F7:
+                       x,y = myball1.x, myball1.y
+                       myball1.x = myball2.x
+                       myball1.y = myball2.y
+                       myball2.x = x
+                       myball2.y = y
+                   if event.key == pygame.K_F5:
+                       myball1.hitpoints =100    
+                       myball2.hitpoints =100
+                       verfolger1.hitpoints =100
+                       verfolger2.hitpoints =100
+                       verfolger3.hitpoints =100
+                       verfolger4.hitpoints =100
+                       
+                       
+                       verfolger1.x=0
+                       verfolger1.y=0
+                       verfolger2.x=self.width
+                       verfolger2.y=0
+                       verfolger3.x=0
+                       verfolger3.y=self.height
+                       verfolger4.x=self.width
+                       verfolger4.y=self.height
+                       
+                        
+                          
+                       
+                           
+                   
                     
            pressedkeys = pygame.key.get_pressed()
            if myball2.hitpoints > 0:
@@ -251,7 +301,7 @@ class PygView(object):
                                 self.tooclose.play()
                                 #self.screen.fill(random.choice((player.color, evil.color, (0,0,0), (255,255,255))))
                                 for krach in range(5):
-                                     pygame.draw.line(self.screen, (0,0,0), (player.x, player.y), (player.x + random.randint(-50,50), player.y+random.randint(-50,50)), 6)
+                                     pygame.draw.line(self.screen, (random.randint(0,255),random.randint(0,255),random.randint(0,255)), (player.x, player.y), (player.x + random.randint(-50,50), player.y+random.randint(-50,50)), 6)
            
                     
            
@@ -302,4 +352,4 @@ class PygView(object):
         screen.blit(surface, (x,y))
 
 if __name__ == "__main__":
-    PygView().run()
+    PygView(width=1024, height=800).run()
