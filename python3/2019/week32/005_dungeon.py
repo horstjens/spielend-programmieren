@@ -91,9 +91,24 @@ def mathquiz():
             continue
         if answer == a * b:
             break
+        else:
+            print("Falsche Antwort...Du verlierst einen Hitpoint")
+            return -1, 0
     endtime = time.time()
     print("Bravo! {}".format(endtime-starttime))
-    return 0, 0
+    if endtime < 1:
+        return 3, -10
+    elif endtime < 2:
+        return 2, -9
+    elif endtime < 3:
+        return 1, -7
+    elif endtime < 4:
+        return 0, -6
+    elif endtime < 5:
+        return 0, -5
+    else:
+        return 0, -1
+    
     
             
 def gamble():
