@@ -128,8 +128,9 @@ def mathquiz():
     
 
 def fight(a, d):
-    print("{} starts a fight with {}".format(a.__class__.__name__,
-                                             d.__class__.__name__))
+    print("{} ({}hp) starts a fight with {} ({}hp)".format(
+           a.__class__.__name__, a.hp,
+           d.__class__.__name__, d.hp))
     strike(a, d)
     if d.hp > 0:
         print("counterstrike")
@@ -199,6 +200,12 @@ class Monster():
         self.z = z
         self.hp = 100
         self.char = "U"
+        self.sniffrange = 3
+        self.lazy = 0.05 # 5% chance, ziel zu vergessen
+        self.friendly = 0 # feindlich
+    
+    def update(self, level=None):
+        pass
     
     def attack(self):
         w1 = random.randint(1,6)
@@ -215,9 +222,107 @@ class Monster():
               self.__class__.__name__,w1,w2,w1+w2))
         return w1+w2
         
+    def wander(self):
+        dx = random.choice((-1,-1,0,0,0,0,1,1))
+        dy = random.choice((-1,-1,0,0,0,0,1,1))
+        return dx, dy
+    
+    def ai(self, target=0):
+        # --- distance to target ----
+        t = Monster.zoo[target]
+        distance_x = t.x - self.x
+        distance_y = t.y - self.y
+        distance = (distance_x **2 + distance_y **2) ** 0.5
+        if distance > self.sniffrange:
+            dx, dy = self.wander()
+            return dx, dy
+        if distance_x > 0:
+            dx = 1
+        elif distance_x < 0:
+            dx = -1
+        else:
+            dx = 0
+        if distance_y > 0:
+            dy = 1
+        elif distance_y < 0:
+            dy = -1
+        else:
+            dy = 0
+        # --- too lazy to pursuit ? ----
+        if random.random() < self.lazy:
+            return self.wander()
+        return dx, dy
         
-    def ai(self):
-        return 0, 0
+
+class Wolf(Monster):
+    
+    def __init__(self, x, y, z):
+        Monster.__init__(self, x, y, z)
+        self.hp = 30
+        self.char = "W"
+        self.sniffrange = 10
+        self.lazy = 0.1 # 10% chance Verfolgung abzubrechen
+    
+    def wander(self):
+        dx = random.choice((-2,-2,-1,-1,0,1,1,2,2))
+        dy = random.choice((-2,-2,-1,-1,0,1,1,2,2))
+        return dx, dy
+
+class Unicorn(Monster):
+    
+    def __init__(self, x, y, z):
+        Monster.__init__(self, x, y, z)
+        self.hp = 400
+        self.char = "U"
+        self.sniffrange = 2
+        self.lazy = 0.15 
+        self.friendly = 1 # neutral
+    
+    def wander(self):
+        dx = random.choice((-3,-2,-1,-1,0,1,1,2,3))
+        dy = random.choice((-3,-2,-1,-1,0,1,1,2,3))
+        return dx, dy
+
+class Spawner(Monster):
+    
+    def __init__(self, x, y, z):
+        Monster.__init__(self, x, y, z)
+        self.hp = 500
+        self.char = "G"
+        self.sniffrange = 0
+    
+    def wander(self):
+        return 0, 0    
+    
+    def update(self, level=None):
+        if self.char == "G":
+            self.char = "C"
+        else:
+            self.char = "G"
+        # spawn a new Monster ? 
+        if random.random() < 0.1:   
+            dx,dy = random.choice(( (1,1), (1,0), (1, -1),
+                                    (0,1), (0,-1),
+                                    (-1,1), (-1,0), (-1,-1)))
+            if level[self.y + dy][self.x + dx] != ".":
+                return
+            for m in Monster.zoo.values():
+                if m.z != self.z or m.hp <= 0:
+                    continue
+                if self.y + dy == m.y and self.x + dx == m.x:
+                    return
+            mo = random.choice(("W","W","W","W","Ö","G","G"))
+            if mo == "W":
+                Wolf(self.x+dx, self.y+dy, self.z)
+            elif mo == "Ö":
+                Dragon(self.x+dx, self.y+dy, self.z)
+            elif mo == "G":
+                Spawner(self.x+dx, self.y+dy, self.z)
+                    
+                                    
+            
+        
+     
 
 class Dragon(Monster):
     
@@ -225,11 +330,11 @@ class Dragon(Monster):
         Monster.__init__(self, x, y, z)
         self.hp = 150
         self.char = "Ö"
+        self.sniffrange = 7
+        self.lazy = 0.3 # 30% chance Verfolgung abzubrechen
     
-    def ai(self):
-        dx = random.choice((-1,-1,0,0,0,0,1,1))
-        dy = random.choice((-1,-1,0,0,0,0,1,1))
-        return dx, dy
+    
+       
 
 class Player(Monster):
     
@@ -241,6 +346,7 @@ class Player(Monster):
         self.hunger = 0
         self.keys = 0
         #self.stones = 0
+        self.friendly = 2
     
     
     
@@ -255,6 +361,8 @@ def game():
     hero = Player(1, 2, 0)
     Dragon(5, 17, 0)         
     Dragon(8, 12 ,0)
+    Wolf(15,10,0)
+    Spawner(15,10,0)
             
     text = ""
     # ------- Grafik engine ------
@@ -277,11 +385,21 @@ def game():
                     if m2.number == hero.number:
                         fight(m, hero)
             # --- wall check for Monster ---
-            if dungeon[hero.z][m.y + dy][m.x + dx] in ("#","D"):
+            try:
+                target = dungeon[hero.z][m.y + dy][m.x + dx]
+            except:
+                target = "#"
+            if target in ("#","D"):
                 dx, dy = 0, 0
             m.x += dx
             m.y += dy
-                
+        # ----- spwaning new monsters -----
+        parents = []
+        for m in Monster.zoo.values():
+            if m.z == hero.z and m.hp >0 and m.__class__.__name__=="Spawner":
+                parents.append(m)
+        for p in parents:
+            p.update(dungeon[hero.z])        
         # ----- graphic engine ----
         for y, line in enumerate(dungeon[hero.z]):
             for x, char in enumerate(line):
@@ -418,7 +536,6 @@ def game():
 
 if __name__ == "__main__":
     game()
-
 
 
 
