@@ -1,0 +1,2 @@
+graphics and sounds from "battle of wesnoth"
+all licenses: creative-commons, cc-by-sa
