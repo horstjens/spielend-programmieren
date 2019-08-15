@@ -102,17 +102,17 @@ def strike(attacker, defender, direction):
         Flytext(text="Successful defense {} vs. {}".format(a,d),
                 pos = pygame.math.Vector2(defender.pos.x, defender.pos.y),
                 move=pygame.math.Vector2(0,15*direction),
-                color=(0,200,0))
+                color=(0,200,0), max_age=1)
     else:
         Flytext(text="Successful attack {} vs {}".format(a,d),
                 pos = pygame.math.Vector2(attacker.pos.x, attacker.pos.y),
                 move=pygame.math.Vector2(0,15*direction),
-                color=(0,0,200))
+                color=(0,0,200), max_age=1)
         damage = a-d
         Flytext(text="- {} HP".format(damage),
                 pos = pygame.math.Vector2(defender.pos.x, defender.pos.y),
                 move=pygame.math.Vector2(0,4*direction),
-                color=(255,0,0))
+                color=(255,0,0), max_age=1)
         defender.hitpoints -= damage
     
                 
@@ -415,6 +415,7 @@ class Wizard(VectorSprite):
         self._layer = 15
         self.attack = 7
         self.defense = 5
+        self.hitpoints = 200
         
         
     def update(self, seconds):
@@ -456,6 +457,7 @@ class Lizard(Wizard):
         self.defense = 2
         self.attacktime = 0
         self.lookright = True
+        self.hitpoints = 50
     
     def create_image(self):
         self.image=Viewer.images["reptile"]        
@@ -541,7 +543,7 @@ class Cannon(VectorSprite):
 class Flytext(VectorSprite):
     
     def _overwrite_parameters(self):
-        self._layer = 7  # order of sprite layers (before / behind other sprites)
+        self._layer = 17  # order of sprite layers (before / behind other sprites)
         self.r, self.g, self.b = self.color
         
     def create_image(self):
