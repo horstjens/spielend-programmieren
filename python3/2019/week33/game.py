@@ -405,7 +405,7 @@ class Wall(VectorSprite):
         
         
         
-    
+
 
 class Wizard(VectorSprite):
     
@@ -470,6 +470,26 @@ class Lizard(Wizard):
         self.rect = self.image.get_rect()
 
     
+class Wolf(Lizard):
+    
+    def _overwrite_parameters(self):
+        self.lookright = True
+        self.attacktime = 0
+        self._layer = 15
+        self.attack = 8
+        self.defense = 3
+        self.hitpoints = 30
+        
+    def create_image(self):
+        self.image=Viewer.images["wolf"]        
+        self.image0 = self.image.copy()
+        self.image1 = pygame.transform.flip(self.image, True, False)
+        
+        self.image2 = Viewer.images["wolf-a"]
+        self.image3 = pygame.transform.flip(self.image2, True, False)
+        
+        self.rect = self.image.get_rect()
+
 
 class Cannon(VectorSprite):
     def _overwrite_parameters(self):
@@ -838,7 +858,7 @@ class Viewer(object):
             
             ##self.create_selected("catapult1")
             
-            Viewer.images["cannon"] = pygame.image.load(os.path.join("data", "cannon.png"))
+            #Viewer.images["cannon"] = pygame.image.load(os.path.join("data", "cannon.png"))
             Viewer.images["wizard"] = pygame.image.load(os.path.join(
                                       "data", "arch-mage.png"))
             Viewer.images["reptile"] = pygame.image.load(os.path.join(
@@ -847,7 +867,10 @@ class Viewer(object):
                                       "data", "arch-mage-attack.png"))
             Viewer.images["reptile-a"] = pygame.image.load(os.path.join(
                                        "data", "fighter-attack.png"))
-            
+            Viewer.images["wolf"] = pygame.image.load(os.path.join(
+                                        "data", "wolf.png"))
+            Viewer.images["wolf-a"] = pygame.image.load(os.path.join(
+                                        "data","wolf-attack.png"))
             # --- scalieren ---
             #for name in Viewer.images:
             #    if name == "bossrocket":
@@ -875,6 +898,7 @@ class Viewer(object):
         #Bullet.groups = self.allgroup, self.bulletgroup
         #Rocket.groups = self.allgroup, self.rocketgroup
         Lizard.groups = self.allgroup, self.enemygroup
+        Wolf.groups = self.allgroup, self.enemygroup
         Wall.groups = self.allgroup, self.wallgroup
         
         #Catapult.groups = self.allgroup,
@@ -883,8 +907,8 @@ class Viewer(object):
         #self.cannon1 = Cannon(bounce_on_edge = True)
         #self.cannon2 = Cannon(bounce_on_edge = True)
         self.player1 = Wizard(pos=pygame.math.Vector2(500,-200))
-        self.enemy1 = Lizard(pos=pygame.math.Vector2(800,-250))
-        
+        #self.enemy1 = Lizard(pos=pygame.math.Vector2(800,-250))
+        #Lizard(pos=pygame.math.Vector2(300,-300))
    
     def menu_run(self):
         running = True
@@ -1041,6 +1065,23 @@ class Viewer(object):
             for y in range(50, Viewer.height-50, 50):
                 if random.random() < 0.15:
                     Wall(pos=pygame.math.Vector2(x,-y))
+        
+        
+        # ---- create random enemies ------
+        pool = ["wolf","wolf","wolf", "lizard"]
+        for x in range(50, Viewer.width-50, 50):
+            for y in range(50, Viewer.height-50, 50):
+                # chance for a monster on this tile
+                if x == -self.player1.pos.x and y == -self.player1.pos.y:
+                    continue  # no monster on top of player
+                if random.random() < 0.05:  # 5%
+                    what = random.choice(pool)
+                    if what=="wolf":
+                        Wolf(pos=pygame.math.Vector2(x,-y))
+                    if what=="lizard":
+                        Lizard(pos=pygame.math.Vector2(x,-y))
+        
+        
         # --- no wall on players / enemies -----
         for w in self.wallgroup:
             if w.pos == self.player1.pos:
