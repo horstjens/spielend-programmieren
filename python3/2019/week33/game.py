@@ -1039,32 +1039,51 @@ class Viewer(object):
                         
                         
                     # --- move player 1 (wizard) -----
-                    
+                    dx, dy = 0, 0
                     if event.key == pygame.K_UP:
-                        self.player1.pos.y += 50
+                        #self.player1.pos.y += 50
+                        dy = 50
                         
                     if event.key == pygame.K_DOWN:
-                        self.player1.pos.y -= 50
+                        #self.player1.pos.y -= 50
+                        dy = -50
                         
                     if event.key == pygame.K_RIGHT:
-                        for w in self.wallgroup:
-                            if w.pos.x == self.player1.pos.x + 50 and w.pos.y==self.player1.pos.y:
-                                w.crack()
-                                w.hitpoints -= random.randint(1,10)
-                                Explosion(posvector = pygame.math.Vector2(
-                                          self.player1.pos.x + 25, self.player1.pos.y))
-                                break
-                        else:
-                            self.player1.pos.x += 50
+                        dx = 50
                         self.player1.lookright = True
                         
+                        
                     if event.key == pygame.K_LEFT:
-                        self.player1.pos.x -= 50
+                        dx = -50
                         self.player1.lookright = False
                     
+                    # ---- check wall for moving player 1
+                    for w in self.wallgroup:
+                        if w.pos.x == self.player1.pos.x + dx and w.pos.y==self.player1.pos.y + dy:
+                            dx , dy = 0, 0 # player must stop
+                            w.crack()
+                            w.hitpoints -= random.randint(1,10)
+                            Explosion(posvector = pygame.math.Vector2(
+                                    self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                            break
+                    # ----- check enemy for moving player 1
+                    for e in self.enemygroup:
+                        if e.pos.x == self.player1.pos.x + dx and e.pos.y==self.player1.pos.y + dy:
+                            dx , dy = 0, 0 # player must stop
+                            ## fight
+                            
+                            Explosion(posvector = pygame.math.Vector2(
+                                    self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                            break
+                    
+                    # ---- move the player -----
+                    self.player1.pos.x += dx
+                    self.player1.pos.y += dy
+                        
+                    
                     # --- attack for player1 -----
-                    if event.key == pygame.K_c:
-                        self.player1.attack()
+                    #if event.key == pygame.K_c:
+                    #    self.player1.attack()
                         
                     # --- magic for player1 ----
                     if event.key == pygame.K_SPACE:
