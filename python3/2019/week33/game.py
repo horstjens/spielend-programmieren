@@ -316,6 +316,37 @@ class Wall(VectorSprite):
         self.color = (139, 105, 20)
         self.hitpoints = 200
         
+    def crack(self):
+        # border point
+        border = random.choice(("n","s","w","e"))
+        if border == "n":
+            x1 = random.randint(0, 50)
+            y1 = 0
+            x2 = random.randint(20,30)
+            y2 = random.randint(15,25)
+        if border == "s":
+            x1 = random.randint(0, 50)
+            y1 = 50
+            x2 = random.randint(20,30)
+            y2 = random.randint(25,35)
+        if border == "w":
+            x1 = 0
+            y1 = random.randint(0, 50)
+            x2 = random.randint(15,25)
+            y2 = random.randint(20,30)
+        if border == "e":
+            x1 = 50
+            y1 = random.randint(0, 50)
+            x2 = random.randint(25,35)
+            y2 = random.randint(20,30)
+        # draw crackline
+        thick = random.randint(1,3)
+        pygame.draw.line(self.image, (0,0,0), (x1,y1), (x2, y2), thick)
+        self.image.set_colorkey((0,0,0))
+        self.image.convert_alpha()
+            
+        
+        
     def create_image(self):
         new = [0,0,0]
         for a in range(3):
@@ -1018,6 +1049,7 @@ class Viewer(object):
                     if event.key == pygame.K_RIGHT:
                         for w in self.wallgroup:
                             if w.pos.x == self.player1.pos.x + 50 and w.pos.y==self.player1.pos.y:
+                                w.crack()
                                 w.hitpoints -= random.randint(1,10)
                                 Explosion(posvector = pygame.math.Vector2(
                                           self.player1.pos.x + 25, self.player1.pos.y))
@@ -1099,8 +1131,7 @@ class Viewer(object):
             ##self.paint_world()
                        
             # write text below sprites
-            write(self.screen, "FPS: {:8.3}".format(
-                self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(200,200,200))
+           
             
             # ----- collision detection between player and Bullet---
             #for p in self.playergroup:
@@ -1130,7 +1161,9 @@ class Viewer(object):
             # ----------- clear, draw , update, flip -----------------
             self.allgroup.draw(self.screen)
             #print(self.allgroup)
-
+            # ----- FPS -----
+            write(self.screen, "FPS: {:8.3}".format(
+                self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(0,255,0), fontsize=12)
             
            
                 
