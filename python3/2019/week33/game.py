@@ -82,6 +82,44 @@ def elastic_collision(sprite1, sprite2):
                 sprite1.move.y -= 2 * diry * cdp
 
 
+def fight(attacker, defender):
+    strike(attacker, defender, 1)
+    if defender.hitpoints > 0:
+        strike(defender, attacker, -1)
+        
+def strike(attacker, defender, direction):
+    """attacker strikes once against defender"""
+    attacker.attack_animation()
+    # attack vs defense
+    d1 = random.randint(1,6)
+    d2 = random.randint(1,6)
+    d3 = random.randint(1,6)
+    d4 = random.randint(1,6)
+    # attack value + d1+d2 > defense value + d3 +d4 ?
+    a = attacker.attack + d1 + d2
+    d = defender.defense + d3 + d4
+    if d >= a:
+        Flytext(text="Successful defense {} vs. {}".format(a,d),
+                pos = pygame.math.Vector2(defender.pos.x, defender.pos.y),
+                move=pygame.math.Vector2(0,15*direction),
+                color=(0,200,0))
+    else:
+        Flytext(text="Successful attack {} vs {}".format(a,d),
+                pos = pygame.math.Vector2(attacker.pos.x, attacker.pos.y),
+                move=pygame.math.Vector2(0,15*direction),
+                color=(0,0,200))
+        damage = a-d
+        Flytext(text="- {} HP".format(damage),
+                pos = pygame.math.Vector2(defender.pos.x, defender.pos.y),
+                move=pygame.math.Vector2(0,4*direction),
+                color=(255,0,0))
+        defender.hitpoints -= damage
+    
+                
+                
+    
+
+
 class VectorSprite(pygame.sprite.Sprite):
     """base class for sprites. this class inherits from pygames sprite class"""
     number = 0
@@ -375,6 +413,9 @@ class Wizard(VectorSprite):
         self.lookright = True
         self.attacktime = 0
         self._layer = 15
+        self.attack = 7
+        self.defense = 5
+        
         
     def update(self, seconds):
         if self.age < self.attacktime:
@@ -389,7 +430,7 @@ class Wizard(VectorSprite):
                 self.image = self.image1
         VectorSprite.update(self, seconds)
         
-    def attack(self, duration=0.35):
+    def attack_animation(self, duration=0.15):
         self.attacktime = self.age + duration
         if self.lookright:
             self.image = self.image2 
@@ -409,6 +450,12 @@ class Wizard(VectorSprite):
 
 
 class Lizard(Wizard):
+    
+    def _overwrite_parameters(self):
+        self.attack = 5
+        self.defense = 2
+        self.attacktime = 0
+        self.lookright = True
     
     def create_image(self):
         self.image=Viewer.images["reptile"]        
@@ -1060,20 +1107,22 @@ class Viewer(object):
                     # ---- check wall for moving player 1
                     for w in self.wallgroup:
                         if w.pos.x == self.player1.pos.x + dx and w.pos.y==self.player1.pos.y + dy:
-                            dx , dy = 0, 0 # player must stop
+                            self.player1.attack_animation()
                             w.crack()
                             w.hitpoints -= random.randint(1,10)
                             Explosion(posvector = pygame.math.Vector2(
                                     self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                            dx , dy = 0, 0 # player must stop
                             break
                     # ----- check enemy for moving player 1
                     for e in self.enemygroup:
                         if e.pos.x == self.player1.pos.x + dx and e.pos.y==self.player1.pos.y + dy:
-                            dx , dy = 0, 0 # player must stop
-                            ## fight
                             
+                            ## fight
+                            fight(self.player1, e)
                             Explosion(posvector = pygame.math.Vector2(
                                     self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                            dx , dy = 0, 0 # player must stop
                             break
                     
                     # ---- move the player -----
