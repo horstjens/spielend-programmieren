@@ -83,11 +83,13 @@ def elastic_collision(sprite1, sprite2):
 
 
 def fight(attacker, defender):
-    strike(attacker, defender, 1)
+    Viewer.log.append([(0,255,0), "{} strikes at {}".format(attacker.__class__.__name__, defender.__class__.__name__)])
+    strike(attacker, defender)
     if defender.hitpoints > 0:
-        strike(defender, attacker, -1)
+        Viewer.log.append([(0,200,0),"{} strikes back against {}".format(defender.__class__.__name__, attacker.__class__.__name__)])
+        strike(defender, attacker)
         
-def strike(attacker, defender, direction):
+def strike(attacker, defender):
     """attacker strikes once against defender"""
     attacker.attack_animation()
     # attack vs defense
@@ -99,22 +101,19 @@ def strike(attacker, defender, direction):
     a = attacker.attack + d1 + d2
     d = defender.defense + d3 + d4
     if d >= a:
-        Flytext(text="Successful defense {} vs. {}".format(a,d),
-                pos = pygame.math.Vector2(defender.pos.x, defender.pos.y),
-                move=pygame.math.Vector2(0,15*direction),
-                color=(0,200,0), max_age=1)
+        damage = 0
     else:
-        Flytext(text="Successful attack {} vs {}".format(a,d),
-                pos = pygame.math.Vector2(attacker.pos.x, attacker.pos.y),
-                move=pygame.math.Vector2(0,15*direction),
-                color=(0,0,200), max_age=1)
         damage = a-d
-        Flytext(text="- {} HP".format(damage),
-                pos = pygame.math.Vector2(defender.pos.x, defender.pos.y),
-                move=pygame.math.Vector2(0,4*direction),
-                color=(255,0,0), max_age=1)
-        defender.hitpoints -= damage
-    
+    Flytext(text="{}{} HP".format("-" if damage >0 else "", damage), 
+            pos = pygame.math.Vector2(defender.pos.x, defender.pos.y+20), 
+            move = pygame.math.Vector2( 0.25 * (defender.pos.x- attacker.pos.x) , 25),
+            color = (200,0,0) if damage > 0 else (20,20,20), max_age=1)
+    text = "hit!" if damage > 0 else "fail..."
+    text += " attack+2d6 = {} + {} + {} = {} Vs. defense+2d6 = {} + {} + {} = {}".format(
+            attacker.attack, d1, d2, attacker.attack+d1+d2, defender.defense, d3, d4, defender.defense + d3+d4)
+    if damage > 0:
+        text += "  DAMAGE {} HP".format(damage)
+    Viewer.log.append([(255,255,255), text])
                 
                 
     
@@ -407,15 +406,16 @@ class Wall(VectorSprite):
         
 
 
-class Wizard(VectorSprite):
+class Monster(VectorSprite):
     
     def _overwrite_parameters(self):
         self.lookright = True
         self.attacktime = 0
-        self._layer = 15
-        self.attack = 7
+        self._layer = 14
+        self.attack = 5
         self.defense = 5
-        self.hitpoints = 200
+        self.hitpoints = 50
+        self.imagenames = ["wizard", "wizard-a"]
         
         
     def update(self, seconds):
@@ -440,17 +440,28 @@ class Wizard(VectorSprite):
         
     
     def create_image(self):
-        self.image=Viewer.images["wizard"]        
+        self.image=Viewer.images[self.imagenames[0]]        
         self.image0 = self.image.copy()
         self.image1 = pygame.transform.flip(self.image, True, False)
         
-        self.image2 = Viewer.images["wizard-a"]
+        self.image2 = Viewer.images[self.imagenames[1]]
         self.image3 = pygame.transform.flip(self.image2, True, False)
         
         self.rect = self.image.get_rect()
 
+class Wizard(Monster):
+    
+    def _overwrite_parameters(self):
+        self.lookright = True
+        self.attacktime = 0
+        self._layer = 15
+        self.attack = 7
+        self.defense = 5
+        self.hitpoints = 200
+        self.imagenames = ["wizard", "wizard-a"]
+    
 
-class Lizard(Wizard):
+class Lizard(Monster):
     
     def _overwrite_parameters(self):
         self.attack = 5
@@ -458,19 +469,10 @@ class Lizard(Wizard):
         self.attacktime = 0
         self.lookright = True
         self.hitpoints = 50
+        self.imagenames = ["reptile", "reptile-a"]
     
-    def create_image(self):
-        self.image=Viewer.images["reptile"]        
-        self.image0 = self.image.copy()
-        self.image1 = pygame.transform.flip(self.image, True, False)
-        
-        self.image2 = Viewer.images["reptile-a"]
-        self.image3 = pygame.transform.flip(self.image2, True, False)
-        
-        self.rect = self.image.get_rect()
-
     
-class Wolf(Lizard):
+class Wolf(Monster):
     
     def _overwrite_parameters(self):
         self.lookright = True
@@ -479,17 +481,9 @@ class Wolf(Lizard):
         self.attack = 8
         self.defense = 3
         self.hitpoints = 30
+        self.imagenames = ["wolf", "wolf-a"]
         
-    def create_image(self):
-        self.image=Viewer.images["wolf"]        
-        self.image0 = self.image.copy()
-        self.image1 = pygame.transform.flip(self.image, True, False)
-        
-        self.image2 = Viewer.images["wolf-a"]
-        self.image3 = pygame.transform.flip(self.image2, True, False)
-        
-        self.rect = self.image.get_rect()
-
+    
 
 class Cannon(VectorSprite):
     def _overwrite_parameters(self):
@@ -727,6 +721,7 @@ class Explosion():
 class Viewer(object):
     width = 0
     dungeon = []
+    log = []
     gold = 0
     height = 0
     images = {}
@@ -889,6 +884,8 @@ class Viewer(object):
         self.playergroup = pygame.sprite.Group()
         self.rocketgroup = pygame.sprite.Group()
         self.enemygroup = pygame.sprite.Group()
+        self.friendlygroup = pygame.sprite.Group()
+        self.neutralgroup = pygame.sprite.Group()
         self.wallgroup = pygame.sprite.Group()
         
         VectorSprite.groups = self.allgroup
@@ -897,8 +894,9 @@ class Viewer(object):
         #Cannon.groups = self.allgroup, self.playergroup
         #Bullet.groups = self.allgroup, self.bulletgroup
         #Rocket.groups = self.allgroup, self.rocketgroup
-        Lizard.groups = self.allgroup, self.enemygroup
-        Wolf.groups = self.allgroup, self.enemygroup
+        Monster.groups = self.allgroup, self.enemygroup
+        Wizard.groups = self.allgroup, self.friendlygroup
+        #Wolf.groups = self.allgroup, self.enemygroup
         Wall.groups = self.allgroup, self.wallgroup
         
         #Catapult.groups = self.allgroup,
@@ -1115,7 +1113,7 @@ class Viewer(object):
             seconds = milliseconds / 1000
             self.playtime += seconds
             
-            
+            dx, dy = 0, 0
             # -------- events ------
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -1129,7 +1127,7 @@ class Viewer(object):
                         
                         
                     # --- move player 1 (wizard) -----
-                    dx, dy = 0, 0
+                  
                     if event.key == pygame.K_UP:
                         #self.player1.pos.y += 50
                         dy = 50
@@ -1147,30 +1145,6 @@ class Viewer(object):
                         dx = -50
                         self.player1.lookright = False
                     
-                    # ---- check wall for moving player 1
-                    for w in self.wallgroup:
-                        if w.pos.x == self.player1.pos.x + dx and w.pos.y==self.player1.pos.y + dy:
-                            self.player1.attack_animation()
-                            w.crack()
-                            w.hitpoints -= random.randint(1,10)
-                            Explosion(posvector = pygame.math.Vector2(
-                                    self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
-                            dx , dy = 0, 0 # player must stop
-                            break
-                    # ----- check enemy for moving player 1
-                    for e in self.enemygroup:
-                        if e.pos.x == self.player1.pos.x + dx and e.pos.y==self.player1.pos.y + dy:
-                            
-                            ## fight
-                            fight(self.player1, e)
-                            Explosion(posvector = pygame.math.Vector2(
-                                    self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
-                            dx , dy = 0, 0 # player must stop
-                            break
-                    
-                    # ---- move the player -----
-                    self.player1.pos.x += dx
-                    self.player1.pos.y += dy
                         
                     
                     # --- attack for player1 -----
@@ -1182,7 +1156,33 @@ class Viewer(object):
                         Explosion(posvector = self.player1.pos,
                                   red=255, blue=255, green=0)
                         
+            # ---- check wall for moving player 1
+            if dx != 0 or dy != 0:
+                for w in self.wallgroup:
+                    if w.pos.x == self.player1.pos.x + dx and w.pos.y==self.player1.pos.y + dy:
+                        self.player1.attack_animation()
+                        w.crack()
+                        w.hitpoints -= random.randint(1,10)
+                        Explosion(posvector = pygame.math.Vector2(
+                                self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                        dx , dy = 0, 0 # player must stop
+                        break
+                # ----- check enemy for moving player 1
+                for e in self.enemygroup:
                     
+                    if e.pos.x == self.player1.pos.x + dx and e.pos.y==self.player1.pos.y + dy:
+                        
+                        ## fight
+                        fight(self.player1, e)
+                        Explosion(posvector = pygame.math.Vector2(
+                                self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                        dx , dy = 0, 0 # player must stop
+                        break
+                
+                # ---- move the player -----
+                self.player1.pos.x += dx
+                self.player1.pos.y += dy
+                        
                     
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
@@ -1275,6 +1275,13 @@ class Viewer(object):
             # ----- FPS -----
             write(self.screen, "FPS: {:8.3}".format(
                 self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(0,255,0), fontsize=12)
+            # ----- log ------
+            for i in range(-8, 0):
+                try:
+                    textcolor, line = Viewer.log[i]
+                except:
+                    continue
+                write(self.screen, line, x=Viewer.width // 2, y=Viewer.height + i*10, color=textcolor, fontsize=12)
             
            
                 
