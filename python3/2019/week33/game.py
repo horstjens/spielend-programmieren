@@ -236,6 +236,7 @@ class VectorSprite(pygame.sprite.Sprite):
             self.color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
 
     def kill(self):
+        
         if self.number in self.numbers:
            del VectorSprite.numbers[self.number] # remove Sprite from numbers dict
         pygame.sprite.Sprite.kill(self)
@@ -405,7 +406,7 @@ class Wall(VectorSprite):
         self.image.convert_alpha()
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
-        print(self.pos)
+        #print(self.pos)
             
         
         
@@ -417,19 +418,54 @@ class Monster(VectorSprite):
     def _overwrite_parameters(self):
         self.lookright = True
         self.attacktime = 0
+        #self.movingtime = 0
         self._layer = 14
         self.attack = 5
         self.defense = 5
         self.hitpoints = 50
         self.imagenames = ["wizard", "wizard-a"]
+        self.dx, self.dy = 0, 0
+        self.sniffrange = 5
         
         
+    def ai(self):
+        playerpos = VectorSprite.numbers[0].pos
+        distance = (self.pos - playerpos ).length() // Viewer.tilesize
+        if distance < self.sniffrange:
+            dx, dy = 0, 0
+            if self.pos.x < playerpos.x:
+                dx = Viewer.tilesize
+            elif self.pos.x > playerpos.x:
+                dx = - Viewer.tilesize
+            if self.pos.y < playerpos.y:
+                dy = -Viewer.tilesize
+            elif self.pos.y > playerpos.y:
+                dy = Viewer.tilesize
+        else:
+            dx, dy = random.choice([(0,0), (0,0), (0,0),
+                                    (-Viewer.tilesize, -Viewer.tilesize),
+                                    (-Viewer.tilesize, 0),
+                                    (-Viewer.tilesize, Viewer.tilesize),
+                                    (0, -Viewer.tilesize),
+                                    (0, Viewer.tilesize),
+                                    (Viewer.tilesize, -Viewer.tilesize),
+                                    (Viewer.tilesize, 0),
+                                    (Viewer.tilesize, Viewer.tilesize)])
+        self.dx, self.dy = dx, dy
+        
+    
+    
     def update(self, seconds):
         if self.age < self.attacktime:
             if self.lookright:
                 self.image = self.image2
             else:
                 self.image = self.image3
+        #elif self.age < self.movingtime:
+        #    if self.lookright:
+        #        self.image = self.image4:
+        #    else:
+        #        self.image = self.image5
         else:
             if self.lookright:
                 self.image = self.image0
@@ -437,22 +473,33 @@ class Monster(VectorSprite):
                 self.image = self.image1
         VectorSprite.update(self, seconds)
         
+    #def moving_animation(self, duration=0.1):
+    #    self.movingtime = self.age + duration
+    #    #if self.lookright:
+    #    #      self.image = self.image4
+    #    #else:
+    #    #      self.image = self.image5
+        
     def attack_animation(self, duration=0.15):
         self.attacktime = self.age + duration
-        if self.lookright:
-            self.image = self.image2 
-        else:
-            self.image = self.image3
+        #if self.lookright:
+        #    self.image = self.image2 
+        #else:
+        #    self.image = self.image3
         
     
     def create_image(self):
-        self.image=Viewer.images[self.imagenames[0]]        
+        self.image=Viewer.images[self.imagenames[0]]   
+        # stand normal, look right + left     
         self.image0 = self.image.copy()
         self.image1 = pygame.transform.flip(self.image, True, False)
-        
+        # attack, look right + left
         self.image2 = Viewer.images[self.imagenames[1]]
         self.image3 = pygame.transform.flip(self.image2, True, False)
-        
+        # move, look right + left 
+        #print(Viewer.images)
+        # self.image4 = Viewer.images[self.imagenames[2]]
+        # self.image5 = pygame.transform.flip(self.image4, True, False)
         self.rect = self.image.get_rect()
 
 class Wizard(Monster):
@@ -465,7 +512,9 @@ class Wizard(Monster):
         self.defense = 5
         self.hitpoints = 200
         self.imagenames = ["wizard", "wizard-a"]
-    
+        self.dx, self.dy = 0, 0
+        self.sniffrange = 5
+        
 
 class Lizard(Monster):
     
@@ -476,7 +525,9 @@ class Lizard(Monster):
         self.lookright = True
         self.hitpoints = 50
         self.imagenames = ["reptile", "reptile-a"]
-    
+        self.dx, self.dy = 0, 0
+        self.sniffrange = 5
+        
     
 class Wolf(Monster):
     
@@ -488,6 +539,8 @@ class Wolf(Monster):
         self.defense = 3
         self.hitpoints = 30
         self.imagenames = ["wolf", "wolf-a"]
+        self.dx, self.dy = 0, 0
+        self.sniffrange = 5
         
     
 
@@ -737,29 +790,25 @@ class Viewer(object):
     height = 0
     images = {}
     sounds = {}
+    inventory = []
     history = ["main"]
     cursor = 0
     name = "main"
+    tilesize = 50
     fullscreen = False
-    menu =  {"main":            ["resume", "settings", "credits", "cheat","plant tomatoes", "quit" ],
+    menu =  {"main":            ["resume", "settings", "credits", "earn money", "shop", "show inventory","quit" ],
             #main
             # cheatmenu 
-            "cheat":           ["back", "shotgun-effect", "double-missles"],
-            "settings":        ["back", "video", "difficulty", "reset all values"],
+            "earn money":      ["back", "plant tomatoes"],
+            "show inventory":  ["back",] ,
+            "shop":            ["back", "buy", "sell"],
+            "sell":            ["back" ],
+            "buy":             ["back", "wooden sword (10)", "old shield (15)"],
+            "settings":        ["back", "video", ],
             #settings
-            "difficulty":      ["back", "powerups", "bosshealth", "playerhealth"],
             "video":           ["back", "resolution", "fullscreen"],
             #difficulty
-            "bosshealth":      ["back", "1000", "2500", "5000", "10000"],
-            "playerhealth":    ["back", "100", "250", "500", "1000"],
-            "powerups":        ["back", "laser", "bonusrockets", "heal", "shield", "speed"],
-            #powerups
-            "bonusrockets":    ["back", "bonusrocketincrease", "bonusrocket duration"],
-            "laser":           ["back", "laserdamage", "laser duration"],
-            "heal":            ["back", "heal effectiveness"],
-            "shield":          ["back", "bossrocket deflection", "shield duration"],
-            "speed":           ["back", "speed increase", "speed duration"],
-            #powerup effects
+           
     
             "fullscreen":      ["back", "true", "false"]
             }
@@ -974,13 +1023,25 @@ class Viewer(object):
                             
                             # direct action
                         elif text == "credits":
-                            Flytext(x=700, y=400, text="by Bigm0 and BakTheBig", fontsize = 100)  
+                            Flytext(x=700, y=400, text="spielend-programmieren.at", fontsize = 100)  
 
                         elif text == "plant tomatoes":
                             Viewer.gold += 1
                             # ----- Gold Explosion ------
-                            Explosion(posvector=pygame.math.Vector2(600,-400))
-
+                            Explosion(red=0, green=220, blue=0, maxlifetime=5, maxspeed=250,
+                                      green_delta=25, minangle=70, maxangle=110, gravity=pygame.math.Vector2(0,-5), 
+                                      posvector=pygame.math.Vector2(random.randint(0, Viewer.width),-Viewer.height + 5)
+                                      )
+                        
+                        elif text == "Holzschwert (5 gold)":
+                            if Viewer.gold < 5:
+                                Flytext(text="not enough gold")
+                            else:
+                                Viewer.gold -= 5
+                                Viewer.inventory.append("Holzschwert")
+                                Viewer.menu["show inventory"].append("Holzschwert")
+                                
+                        
                         if Viewer.name == "resolution":
                             # text is something like 800x600
                             t = text.find("x")
@@ -1013,7 +1074,8 @@ class Viewer(object):
 
             # ----------- clear, draw , update, flip -----------------
             self.allgroup.draw(self.screen)
-
+            # --- paint gold ---
+            write(self.screen, text="You have {} gold.".format(Viewer.gold),x=20, y=20, color=(200,200,0))
             # --- paint menu ----
             # ---- name of active menu and history ---
             write(self.screen, text="you are here:", x=200, y=50, color=(0,255,255))
@@ -1044,10 +1106,10 @@ class Viewer(object):
     def paint_dungeon(self):
         # --- paint a 50 x 50 grid ----
         c = (128,128,128) # grey
-        for x in range(0, Viewer.width+50, 50):
-            pygame.draw.line(self.screen, c, (x-25,0), (x-25, Viewer.height))
-        for y in range(0, Viewer.height+50, 50):
-            pygame.draw.line(self.screen, c, (0, y-25), (Viewer.width, y-25))
+        for x in range(0, Viewer.width+Viewer.tilesize, Viewer.tilesize):
+            pygame.draw.line(self.screen, c, (x-Viewer.tilesize//2,0), (x-Viewer.tilesize//2, Viewer.height))
+        for y in range(0, Viewer.height+Viewer.tilesize, Viewer.tilesize):
+            pygame.draw.line(self.screen, c, (0, y-Viewer.tilesize//2), (Viewer.width, y-Viewer.tilesize//2))
         
     
     def create_level(self):
@@ -1101,6 +1163,8 @@ class Viewer(object):
         pygame.mouse.set_visible(True)
         oldleft, oldmiddle, oldright  = False, False, False
         loglines = 8
+        turn = 0
+        oldturn = 0
         #pygame.mixer.music.play(loops=-1)
         while running:
             #pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
@@ -1131,19 +1195,23 @@ class Viewer(object):
                     if event.key == pygame.K_UP:
                         #self.player1.pos.y += 50
                         dy = 50
+                        turn += 1
                         
-                    if event.key == pygame.K_DOWN:
+                    elif event.key == pygame.K_DOWN:
                         #self.player1.pos.y -= 50
                         dy = -50
+                        turn += 1
                         
-                    if event.key == pygame.K_RIGHT:
+                    elif event.key == pygame.K_RIGHT:
                         dx = 50
                         self.player1.lookright = True
+                        turn += 1
                         
                         
-                    if event.key == pygame.K_LEFT:
+                    elif event.key == pygame.K_LEFT:
                         dx = -50
                         self.player1.lookright = False
+                        turn += 1
                     
                         
                     if event.key == pygame.K_PAGEUP:
@@ -1158,8 +1226,9 @@ class Viewer(object):
                         
                     # --- magic for player1 ----
                     if event.key == pygame.K_SPACE:
-                        Explosion(posvector = self.player1.pos,
-                                  red=255, blue=255, green=0)
+                        turn += 1
+                        Flytext(pos=pygame.math.Vector2(self.player1.pos.x, self.player1.pos.y),
+                                text="i wait a turn", move=pygame.math.Vector2(0,5), max_age=1)
                         
             # ---- check wall for moving player 1
             if dx != 0 or dy != 0:
@@ -1194,7 +1263,33 @@ class Viewer(object):
                 self.player1.pos.x += dx
                 self.player1.pos.y += dy
                         
+            # ------------ move the (hostile) monsters -----
+            if turn > oldturn:
+                for e in self.enemygroup:
+                    e.ai()
+                    # wall ?
+                    for w in self.wallgroup:
+                       if e.pos.x + e.dx == w.pos.x and e.pos.y + e.dy == w.pos.y:
+                           e.dx, e.dy = 0, 0
+                           break
+                    # other (hostile) monster ?
+                    for e2 in self.enemygroup:
+                        if e2.number == e.number:
+                            continue
+                        if e.pos.x + e.dx == e2.pos.x and e.pos.y + e.dy == e2.pos.y:
+                            e.dx, e.dy = 0, 0
+                            break 
+                        # player ?
+                    if e.pos.x + e.dx == self.player1.pos.x and e.pos.y + e.dy == self.player1.pos.y:
+                        fight(e, self.player1)
+                        e.dx, e.dy = 0, 0
+                    # ---- move the monster ------
+                    e.pos.x += e.dx
+                    e.pos.y += e.dy
+                        
                     
+            # ---------------        
+            oldturn = turn        
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
             # -------- exit game with ctrl + q ? -------
