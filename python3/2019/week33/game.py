@@ -736,6 +736,10 @@ class Viewer(object):
     height = 0
     images = {}
     sounds = {}
+    history = ["main"]
+    cursor = 0
+    name = "main"
+    fullscreen = False
     menu =  {"main":            ["resume", "settings", "credits", "cheat","plant tomatoes", "quit" ],
             #main
             # cheatmenu 
@@ -755,26 +759,13 @@ class Viewer(object):
             "shield":          ["back", "bossrocket deflection", "shield duration"],
             "speed":           ["back", "speed increase", "speed duration"],
             #powerup effects
-            "bonusrocketincrease": ["back", "1", "2", "3", "5", "10"],
-            "bonusrocket duration": ["back", "10", "30", "60"],
-            "laserdamage":     ["back", "3", "5", "10"],
-            "laser duration": ["back", "10", "30", "60"],            
-            "heal effectiveness": ["back", "50", "100", "250", "full health"],
-            "bossrocket deflection": ["back", "true", "false"],
-            "shield duration": ["back", "10", "30", "60"],
-            "speed increase":  ["back", "3", "5", "10", "15"],
-            "speed duration":  ["back", "10", "30", "60"],
-            #video
-            "resolution":      ["back", "720p", "1080p", "1440p", "4k"],
+    
             "fullscreen":      ["back", "true", "false"]
             }
     
     
     #Viewer.menu["resolution"] = pygame.display.list_modes()
-    history = ["main"]
-    cursor = 0
-    name = "main"
-    fullscreen = False
+ 
 
     def __init__(self, width=640, height=400, fps=60):
         """Initialize pygame, window, background, font,...
@@ -788,7 +779,7 @@ class Viewer(object):
         self.background.fill((255,255,255)) # fill background white
         self.clock = pygame.time.Clock()
         self.fps = fps
-        self.playtime = 0.0
+        self.age = 0.0
         # -- menu --
         li = ["back"]
         for i in pygame.display.list_modes():
@@ -932,11 +923,11 @@ class Viewer(object):
             # -------- events ------
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    return -1 # running = False
+                    return False # running = False
                 # ------- pressed and released key ------
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        return -1 # running = False
+                        return True # running = False
                     
                     if event.key == pygame.K_d:
                         x = random.randint(0,Viewer.width)
@@ -962,7 +953,7 @@ class Viewer(object):
                     if event.key == pygame.K_RETURN:
                         text = Viewer.menu[Viewer.name][Viewer.cursor]
                         if text == "quit":
-                            return -1
+                            return False
                             #Viewer.menucommandsound.play()
                         elif text in Viewer.menu:
                             # changing to another menu
@@ -971,7 +962,7 @@ class Viewer(object):
                             Viewer.cursor = 0
                             #Viewer.menuselectsound.play()
                         elif text == "resume":
-                            return
+                            return True
                             #Viewer.menucommandsound.play()
                             #pygame.mixer.music.unpause()
                         elif text == "back":
@@ -1046,6 +1037,8 @@ class Viewer(object):
             # -------- next frame -------------
             pygame.display.flip()
         #----------------------------------------------------- 
+        return True 
+    
     
     def paint_dungeon(self):
         # --- paint a 50 x 50 grid ----
@@ -1097,20 +1090,12 @@ class Viewer(object):
             for e in self.enemygroup:
                 if w.pos == e.pos:
                     w.kill()
-                    
-                    
-                    
-                    
-                    
-        
-        
-         
     
     def run(self):
         """The mainloop"""
         
         running = True
-        self.menu_run()
+        running = self.menu_run()
         self.create_level()
         pygame.mouse.set_visible(True)
         oldleft, oldmiddle, oldright  = False, False, False
@@ -1120,9 +1105,12 @@ class Viewer(object):
             #pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
             #                     self.player1.hitpoints, self.player2.hitpoints))
             
+            if self.player1.hitpoints <= 0:
+                running = False
+            
             milliseconds = self.clock.tick(self.fps) #
             seconds = milliseconds / 1000
-            self.playtime += seconds
+            self.age += seconds
             
             dx, dy = 0, 0
             # -------- events ------
@@ -1134,7 +1122,7 @@ class Viewer(object):
                     if event.key == pygame.K_ESCAPE:
                         
                         #running = False
-                        self.menu_run() 
+                        running = self.menu_run() 
                         
                         
                     # --- move player 1 (wizard) -----
