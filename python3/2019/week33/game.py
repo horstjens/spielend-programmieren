@@ -104,10 +104,15 @@ def strike(attacker, defender):
         damage = 0
     else:
         damage = a-d
+    m = pygame.math.Vector2( 0.35 * (defender.pos.x- attacker.pos.x) ,
+                             0.25 * (defender.pos.y - attacker.pos.y ))
+    if m.y == 0: 
+        m.y = 15
     Flytext(text="{}{} HP".format("-" if damage >0 else "", damage), 
             pos = pygame.math.Vector2(defender.pos.x, defender.pos.y+20), 
-            move = pygame.math.Vector2( 0.25 * (defender.pos.x- attacker.pos.x) , 25),
-            color = (200,0,0) if damage > 0 else (20,20,20), max_age=1)
+            move = m,
+            color = (200,0,0) if damage > 0 else (20,20,20), max_age=2,
+            fontsize=60)
     text = "hit!" if damage > 0 else "fail..."
     text += " attack+2d6 = {} + {} + {} = {} Vs. defense+2d6 = {} + {} + {} = {}".format(
             attacker.attack, d1, d2, attacker.attack+d1+d2, defender.defense, d3, d4, defender.defense + d3+d4)
@@ -651,8 +656,11 @@ class Gem(VectorSprite):
         self.kill_on_edge = True
 
     def create_image(self):
+        r = randomize_color(self.red, self.red_delta)
+        g = randomize_color(self.green, self.green_delta)
+        b = randomize_color(self.blue, self.blue_delta)
         self.image = pygame.Surface((10,10)) 
-        pygame.draw.polygon(self.image, self.color,
+        pygame.draw.polygon(self.image, (r,g,b),
              [(5,0), (10,3), (10,7), (5,10), (0,7), (0,3)])
         self.image.set_colorkey((0,0,0))
         self.image.convert_alpha()
@@ -668,10 +676,10 @@ class Spark(VectorSprite):
         self.kill_on_edge = True
         
     def create_image(self):
-        r,g,b = self.color
-        r = randomize_color(r,50)
-        g = randomize_color(g,50)
-        b = randomize_color(b,50)
+        #r,g,b = self.color
+        r = randomize_color(self.red, self.red_delta)
+        g = randomize_color(self.green, self.green_delta)
+        b = randomize_color(self.blue, self.blue_delta)
         self.image = pygame.Surface((10,10))
         pygame.draw.line(self.image, (r,g,b), 
                          (10,5), (5,5), 3)
@@ -698,20 +706,22 @@ class Explosion():
             v.rotate_ip(a)
             speed = random.randint(minspeed, maxspeed)
             duration = random.random() * maxlifetime # in seconds
-            red   = randomize_color(red, red_delta)
-            green = randomize_color(green, green_delta)
-            blue  = randomize_color(blue, blue_delta)
+            #red   = randomize_color(red, red_delta)
+            #green = randomize_color(green, green_delta)
+            #blue  = randomize_color(blue, blue_delta)
             
             if shape == "spark":
                 Spark(pos=pygame.math.Vector2(posvector.x, posvector.y),
                       angle= a, move=v*speed, max_age = duration, 
-                      color=(red,green,blue), kill_on_edge = True,
-                      gravity=gravity)
+                      red=red, green=green, blue=blue,
+                      red_delta = red_delta, green_delta = green_delta, blue_delta=blue_delta,
+                      kill_on_edge = True, gravity=gravity)
             elif shape == "gem":
                 Gem(pos=pygame.math.Vector2(posvector.x, posvector.y),
                       angle= a, move=v*speed, max_age = duration, 
-                      color=(red,green,blue), kill_on_edge = True,
-                      gravity=gravity)
+                      red=red, green=green, blue=blue,
+                      red_delta = red_delta, green_delta = green_delta, blue_delta=blue_delta,
+                      kill_on_edge = True, gravity=gravity)
 
 
         
@@ -1104,6 +1114,7 @@ class Viewer(object):
         self.create_level()
         pygame.mouse.set_visible(True)
         oldleft, oldmiddle, oldright  = False, False, False
+        loglines = 8
         #pygame.mixer.music.play(loops=-1)
         while running:
             #pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
@@ -1146,7 +1157,12 @@ class Viewer(object):
                         self.player1.lookright = False
                     
                         
+                    if event.key == pygame.K_PAGEUP:
+                        loglines += 4
                     
+                    if event.key == pygame.K_PAGEDOWN:
+                        loglines -= 4
+                        loglines = max(0, loglines) # not < 0
                     # --- attack for player1 -----
                     #if event.key == pygame.K_c:
                     #    self.player1.attack()
@@ -1163,8 +1179,14 @@ class Viewer(object):
                         self.player1.attack_animation()
                         w.crack()
                         w.hitpoints -= random.randint(1,10)
+                        direction = w.pos - self.player1.pos #- w.pos
+                        direction.x *= -1 ## no idea why this is necessary, but it is
+                        angle = direction.angle_to(pygame.math.Vector2(1,0))
+                        # print("Angle:", angle)
                         Explosion(posvector = pygame.math.Vector2(
-                                self.player1.pos.x + dx//2, self.player1.pos.y + dy//2))
+                                self.player1.pos.x + dx//2, self.player1.pos.y + dy//2),
+                                red=w.color[0], green=w.color[1], blue=w.color[2],
+                                minangle = angle-45, maxangle= angle+45)
                         dx , dy = 0, 0 # player must stop
                         break
                 # ----- check enemy for moving player 1
@@ -1276,7 +1298,7 @@ class Viewer(object):
             write(self.screen, "FPS: {:8.3}".format(
                 self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(0,255,0), fontsize=12)
             # ----- log ------
-            for i in range(-8, 0):
+            for i in range(-loglines, 0):
                 try:
                     textcolor, line = Viewer.log[i]
                 except:
@@ -1288,6 +1310,8 @@ class Viewer(object):
             # -------- next frame -------------
             pygame.display.flip()
         #-----------------------------------------------------
+        for line in Viewer.log:
+            print(line[1])
         pygame.mouse.set_visible(True)    
         pygame.quit()
 
