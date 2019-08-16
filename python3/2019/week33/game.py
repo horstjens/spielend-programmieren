@@ -118,6 +118,7 @@ def strike(attacker, defender):
             attacker.attack, d1, d2, attacker.attack+d1+d2, defender.defense, d3, d4, defender.defense + d3+d4)
     if damage > 0:
         text += "  DAMAGE {} HP".format(damage)
+    defender.hitpoints -= damage
     Viewer.log.append([(255,255,255), text])
                 
                 
