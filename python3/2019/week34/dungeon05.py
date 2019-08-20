@@ -32,11 +32,11 @@ hitpoints = 100
 gold = 0
 crazy = 0
 princess = 0
+fame = 0
 
-
-while True:
-    print("Hitpoints: {} Crazyness: {}% Gold: {} Princesses: {}".format(
-          hitpoints, crazy, gold, princess))
+while hitpoints > 0 and crazy < 100:
+    print("Hitpoints: {} Crazyness: {}% Gold: {} Princesses: {} Fame: {}".format(
+          hitpoints, crazy, gold, princess, fame))
     rooms = []
     for i in range(random.randint(2,6)):
         rooms.append(random.choice(("monster","monster", "nothing","princess",
@@ -50,53 +50,56 @@ while True:
     effect = rooms[answer-1]
     if effect == "princess":
         princess +=1
+        fame += 10
         print("You rescue (another) princess. Hurraaa!")
     if effect == "monster":
         damage = random.randint(1, 15)
         print("You fight the monster, but you loose {} hp!".format(damage))
+        # hitpoints = hitpoints - damage
+        hitpoints -= damage 
+        fame += 1
+        # ----- loot ? ------
+        if random.random() < 0.35:     # 0.35 = 35% chance
+            loot = random.randint(1, 10)
+            print("You find {} gold in the dead monster.".format(loot))
+            gold += loot
+
     if effect == "stairs":
         print("You can end the game now. Do you want to exit the dungeon?")
         if yesno():
             break
     if effect == "shop":
-        if gold<= 10:
-            print("You find a shop, but you have not enough gold")
+        if gold < 10:
+            print("You find a healer, but you have not enough gold")
         else:
-            print("Do you want to spend 10 gold for healing?")
+            print("Do you want to spend 10 gold for healing? Works almost always!")
             if yesno():
-                heal = random.randint(5,15)
-                print("You gain {} hitpoints".format(heal))
-            
+                gold -= 10
+                healing = ["good", "good", "good", "good", "good", "good",
+                           "good", "good", "good", "very good", "not at all",
+                           "not at all", "not at all", "bad", "bad",
+                           "very bad"]
+                outcome = random.choice(healing)
+                print("The healing process works {}".format(outcome))
+                if outcome == "not at all":
+                    heal = 0
+                elif outcome == "bad":
+                    heal = random.randint(-6, -1)
+                elif outcome == "very bad":
+                    heal = random.randint(-18, -12)
+                elif outcome == "good":
+                    heal = random.randint(1,6)
+                elif outcome = "very good":
+                    heal = random.randint(7, 18)
+                print("your hitpoints change by {}".format(heal))
+                if hitpoints > 100:
+                    print("you already reached your maximum healt of 100")
+                    hitpoints = 100
+                hitpoints += heal
+                input("press ENTER to continue")
+
+print("Game Over")                
+                
+                
         
 
-
-    
-
-start = time.time()
-print('Hello and welcome to the dungeon game')  
-print("You are in a dungeon")
-input("press ENTER")
-print("You see a terrible strong monster. Do you want to fight?")
-if yesno():
-    print("Ouch! The monster kills you. Game Over")
-else:
-    print("Very clever....")
-    input("press ENTER")
-
-    print("You see a sack of gold. Do you want to take it?")
-    if yesno():
-        print("You are rich")
-    else:
-        print("You stay poor")
-        
-    input("press ENTER")
-    print("You see a princess. Do you want to rescue her?")
-    if yesno():
-        print("The princess kisses you")
-    else:
-        print("You remain unkissed")
-    
-    input("press ENTER")
-    print("You have won. Game over")
-end = time.time()
-print("Your time:", end - start)
