@@ -64,7 +64,7 @@ while hitpoints > 0 and crazy < 100:
             print("You find {} gold in the dead monster.".format(loot))
             gold += loot
 
-    if effect == "stairs":
+    if effect == "stair":
         print("You can end the game now. Do you want to exit the dungeon?")
         if yesno():
             break
