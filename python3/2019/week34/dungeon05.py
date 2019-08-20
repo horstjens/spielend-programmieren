@@ -89,7 +89,7 @@ while hitpoints > 0 and crazy < 100:
                     heal = random.randint(-18, -12)
                 elif outcome == "good":
                     heal = random.randint(1,6)
-                elif outcome = "very good":
+                elif outcome == "very good":
                     heal = random.randint(7, 18)
                 print("your hitpoints change by {}".format(heal))
                 if hitpoints > 100:
