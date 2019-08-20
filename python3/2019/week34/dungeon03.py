@@ -1,0 +1,15 @@
+import time
+
+start = time.time()
+print('Hello and welcome to the dungeon game')  
+print("You are in a dungeon")
+input("press ENTER")
+print("You fight a monster")
+input("press ENTER")
+print("You find gold")
+input("press ENTER")
+print("You rescue a princess")
+input("press ENTER")
+print("You have won. Game over")
+end = time.time()
+print("Your time:", end - start)
