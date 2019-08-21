@@ -112,9 +112,9 @@ class Player(Monster):
     def __init__(self):
         Monster.__init__(self)
         self.hitpoints = 50
-        self.attack = 7
-        self.defense = 7
-        self.damage = 7
+        self.attack = 4
+        self.defense = 4
+        self.damage = 4
         self.weapon = "Sword"
         self.armor = "leather armor"
         #self.color = "red"
@@ -174,9 +174,9 @@ while hero.hitpoints > 0 and hero.crazy < 100:
             damage = random.randint(1,10)
             print("While you flee, the monster strikes you!")
             print("You loose {} hp".format(damage))
-            a.hitpoints -= damage
-            a.fame -= d.hitpoints
-            a.gold = int(a.gold / 2)
+            hero.hitpoints -= damage
+            hero.fame -= mo.hitpoints
+            hero.gold = int(hero.gold / 2)
             print("You loose fame and gold")
         else:
             # ------ victory ------                 
