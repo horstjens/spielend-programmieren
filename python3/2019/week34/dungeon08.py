@@ -1,6 +1,40 @@
 import time
 import random
 
+def fight(a, d):
+    battleround = 0
+    while a.hitpoints > 0 and d.hitpoints > 0:
+        battleround += 1
+        print("----======= round {} =======-----".format(battleround))
+        strike(a, d)
+        if d.hitpoints > 0:
+            strike(d, a)
+        print("Do you want to continue to fight (y) or flee (n) ?")
+        if not yesno():
+            return
+
+def strike(a, d):
+    print("{} ({} hp) strikes vs. {} ({} hp)".format(
+            a.__class__.__name__, a.hitpoints, 
+            d.__class__.__name__, d.hitpoints))
+    print("attack: {} + 2d6 vs. defense: {} + 2d6".format(a.attack, d.defense))
+    w1 = random.randint(1,6)
+    w2 = random.randint(1,6)
+    w3 = random.randint(1,6)
+    w4 = random.randint(1,6)
+    print("attack: {}+{}+{} = {} vs. defense: {}+{}+{}= {}".format(a.attack, w1, w2,
+          a.attack+w1+w2, d.defense, w3, w4, d.defense + w3+ w4))
+    if a.attack + w1 + w2 < d.defense + w3 + w4:
+        print("{} fails to penetrate the {} of {}. No damage!".format(
+              a.__class__.__name__, d.armor, d.__class__.__name__))
+        return
+    w5 = random.randint(1,6)
+    print("{} hit {} with his {} and inflicts {} damage ({}+d6)".format(
+          a.__class__.__name__, d.__class__.__name__, a.weapon,
+          w5+a.damage, a.damage))
+    d.hitpoints -= (w5+a.damage)
+    
+
 def door(limit=3):
     while True:
         print("press a number between 1 and", limit)
@@ -45,6 +79,11 @@ class Monster():
         self.legs = random.choice((2,2,2,4,4,4,4,4,8,8,0,0,100))
         self.arms = random.choice((2,2,2,2,2,4,4,8,3,0,0,0,0,0))
         self.heads = random.choice((1,1,1,1,1,1,2))
+        self.body = random.choice(("creature", "bird", "lizard", 
+                                   "spider", "mammal", "insect",
+                                   "snake", "slime-blob", "snail",
+                                   "worm"))
+        
         self.adj = random.choice(("horrible", "weird", "strange", "ugly", 
                                   "very ugly", "smelly", "slimy", "wild"))
         self.size = random.choice(("Tiny", "Small", "Medium", "Medium", "Large",
@@ -55,9 +94,9 @@ class Monster():
         
         
     def describe(self):
-        self.text = "{} {} {} creature with {} {}.".format(   #  {} legs, {} arms and {} heads".format(
+        self.text = "{} {} {} {} with {} {}.".format(   #  {} legs, {} arms and {} heads".format(
                      self.size, self.adj, self.movement,
-                     self.color, self.armor)
+                     self.body, self.color, self.armor)
                      #self.legs, self.arms,
                      #self.heads)
         if self.heads != 1:
@@ -82,7 +121,8 @@ class Player(Monster):
         self.legs = 2
         self.arms = 2
         self.heads = 1
-        self.size = "human-sized"
+        self.size = "normal"
+        self.body = "human"
         self.movement = "walking"
         self.gold = 0
         self.crazy = 0
@@ -98,7 +138,8 @@ class Player(Monster):
 
 # ------- player stats ------- 
 hero = Player()
-
+print("Welcome, young hero. You look fantastic today:")
+hero.describe()
 
 while hero.hitpoints > 0 and hero.crazy < 100:
     hero.status()
@@ -110,7 +151,7 @@ while hero.hitpoints > 0 and hero.crazy < 100:
     for nr, what in enumerate(rooms):
         print(nr+1, "......", "room with", what)
     answer = door(len(rooms))
-    print("You open the door. You see:", rooms[answer-1])
+    print("You open the door to ", rooms[answer-1])
     # ----- event -----
     effect = rooms[answer-1]
     if effect == "princess":
@@ -118,17 +159,38 @@ while hero.hitpoints > 0 and hero.crazy < 100:
         hero.fame += 10
         print("You rescue (another) princess. Hurraaa!")
     if effect == "monster":
-        Monster().describe()
-        damage = random.randint(1, 15)
-        print("You fight the monster, but you loose {} hp!".format(damage))
-        # hitpoints = hitpoints - damage
-        hero.hitpoints -= damage 
-        hero.fame += 1
-        # ----- loot ? ------
-        if random.random() < 0.35:     # 0.35 = 35% chance
-            loot = random.randint(1, 10)
-            print("You find {} gold in the dead monster.".format(loot))
-            hero.gold += loot
+        print("You see a monster!")
+        mo = Monster()
+        mo.describe()
+        fight(hero, mo)
+        if mo.hitpoints > 0:
+            # ---- monster alive ---
+            if hero.hitpoints <= 0:
+                # --- player dead ---
+                print("You are killed")
+                break
+            # ----- player flees ? --------
+            print("You flee like a coward")
+            damage = random.randint(1,10)
+            print("While you flee, the monster strikes you!")
+            print("You loose {} hp".format(damage))
+            a.hitpoints -= damage
+            a.fame -= d.hitpoints
+            a.gold = int(a.gold / 2)
+            print("You loose fame and gold")
+        else:
+            # ------ victory ------                 
+            hero.fame += 1
+            print("*** ---- **** ---- **** ---- **** ---- ****")
+            print("You become more famous after this victory!")
+            print("*** ---- **** ---- **** ---- **** ---- ****")
+            # ----- loot ? ------
+            if random.random() < 0.8:     # 0.35 = 35% chance
+                loot = random.randint(1, 10)
+                print("You find {} gold at the dead monster.".format(loot))
+                hero.gold += loot
+            else:
+                print("You find no gold at the dead monster....")
 
     if effect == "stair":
         print("You can end the game now. Do you want to exit the dungeon?")
