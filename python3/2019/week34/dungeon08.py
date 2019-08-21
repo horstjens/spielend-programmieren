@@ -84,26 +84,24 @@ class Player(Monster):
         self.heads = 1
         self.size = "human-sized"
         self.movement = "walking"
+        self.gold = 0
+        self.crazy = 0
+        self.princess = 0
+        self.fame = 0
         
+    def status(self):
+        print("Hitpoints: {} Crazyness: {}% Gold: {} Princesses: {} Fame: {}".format(
+               self.hitpoints, self.crazy, self.gold, 
+               self.princess, self.fame))
         
-        
-        
-                
-        
-        
-                    
         
 
 # ------- player stats ------- 
-hitpoints = 100
-gold = 0
-crazy = 0
-princess = 0
-fame = 0
+hero = Player()
 
-while hitpoints > 0 and crazy < 100:
-    print("Hitpoints: {} Crazyness: {}% Gold: {} Princesses: {} Fame: {}".format(
-          hitpoints, crazy, gold, princess, fame))
+
+while hero.hitpoints > 0 and hero.crazy < 100:
+    hero.status()
     rooms = []
     for i in range(random.randint(2,6)):
         rooms.append(random.choice(("monster","monster", "nothing","princess",
@@ -116,33 +114,33 @@ while hitpoints > 0 and crazy < 100:
     # ----- event -----
     effect = rooms[answer-1]
     if effect == "princess":
-            
-        fame += 10
+        hero.princess += 1
+        hero.fame += 10
         print("You rescue (another) princess. Hurraaa!")
     if effect == "monster":
         Monster().describe()
         damage = random.randint(1, 15)
         print("You fight the monster, but you loose {} hp!".format(damage))
         # hitpoints = hitpoints - damage
-        hitpoints -= damage 
-        fame += 1
+        hero.hitpoints -= damage 
+        hero.fame += 1
         # ----- loot ? ------
         if random.random() < 0.35:     # 0.35 = 35% chance
             loot = random.randint(1, 10)
             print("You find {} gold in the dead monster.".format(loot))
-            gold += loot
+            hero.gold += loot
 
     if effect == "stair":
         print("You can end the game now. Do you want to exit the dungeon?")
         if yesno():
             break
     if effect == "shop":
-        if gold < 10:
+        if hero.gold < 10:
             print("You find a healer, but you have not enough gold")
         else:
             print("Do you want to spend 10 gold for healing? Works almost always!")
             if yesno():
-                gold -= 10
+                hero.gold -= 10
                 healing = ["good", "good", "good", "good", "good", "good",
                            "good", "good", "good", "very good", "not at all",
                            "not at all", "not at all", "bad", "bad",
@@ -160,14 +158,15 @@ while hitpoints > 0 and crazy < 100:
                 elif outcome == "very good":
                     heal = random.randint(7, 18)
                 print("your hitpoints change by {}".format(heal))
-                if hitpoints > 100:
+                hero.hitpoints += heal
+                if hero.hitpoints > 100:
                     print("you already reached your maximum healt of 100")
-                    hitpoints = 100
-                hitpoints += heal
+                    hero.hitpoints = 100
+                
                 input("press ENTER to continue")
 
 print("Game Over")                
-if fame >= 100:
+if hero.fame >= 100:
     print("Victory")
                 
         
