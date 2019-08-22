@@ -149,6 +149,50 @@ class Princess(Monster):
     def describe(self):
         print("{} has {} eyes, a {} figure and {} {} hair.".format(self.name,
                self.eyecolor, self.figure, self.hairstyle, self.haircolor))
+    
+    def groupdynamic(self):
+        others = []
+        for p in Monster.zoo[0].army :
+            if p.number != self.number:
+                others.append(p)
+        # in others are now all princesses except this princess
+        victim = random.choice(others)
+        for x in range(10):
+            ally = random.choice(others)
+            if ally.number != victim.number:
+                break
+        else:
+            ally = None
+        if self.mood < 0:
+            text, effect1, effect2 = random.choice((
+               ("makes fun of {}".format(victim), -5, 1),
+               ("slaps {} with her handbag...".format(victim), -10, -1),
+               ("steal some item of {}".format(victim), -8, 3)
+               ))
+        else:
+            text, effect1, effect2 = random.choice((
+               ("tells a funny story about {}".format(victim), 3, 1),
+               ("make a compliment about the look of {}".format(victim), 5, 0),
+               ("makes a little gift for {}".format(victim), 5, 1)
+               ))
+        victim.mood += effect1
+        text = text + "changing her mood by {}".format(effect1)
+        if ally is not None:
+            ally.mood += effect2
+            text += "\n and also effecting the mood of her friend {} by {}".format(ally.name, effect2)
+        print(text)
+            
+            
+        
+            
+        
+        
+    
+    def moodswing(self):
+        if random.random() < self.crazy / 100:
+            delta = random.randint(-self.crazy, self.crazy)
+            print("{} changes her mood by {}".format(self.name, delta))
+            self.mood += delta
         
     def act(self):
         if self.mood < -20:
@@ -226,7 +270,7 @@ class Player(Monster):
         self.fame = 0
         
     def status(self):
-        print("Hitpoints: {} Crazyness: {}% Gold: {}  Fame: {}".format(
+        print("YOUR Hitpoints: {} Crazyness: {}% Gold: {}  Fame: {}".format(
                self.hitpoints, self.crazy, self.gold, 
                self.fame))
         
@@ -240,15 +284,18 @@ hero.describe()
 while hero.hitpoints > 0 and hero.crazy < 100:
     print("You and your army:")
     for p in hero.army:
+        p.moodswing()
         p.status()
     hero.status()
     input("press ENTER")
     if len(hero.army) > 0:
         print("your army starts acting:")
         for p in hero.army:
+            if len(hero.army) > 2 and random.random() < p.crazy:
+                p.groupdynamic()
             text, delta = p.act()
             if   delta < 0:
-                text2 = "cooling you down (crazy -{})".format(delta)
+                text2 = "cooling you down (crazy {})".format(delta)
             elif delta > 0:
                 text2 = "driving you more crazy (+{})".format(delta)
             else:
@@ -314,9 +361,12 @@ while hero.hitpoints > 0 and hero.crazy < 100:
                 print("You find no gold at the dead monster....")
 
     if effect == "stair":
-        print("You can end the game now. Do you want to exit the dungeon?")
-        if yesno():
-            break
+        if hero.fame >= 100:
+            print("You can end the game now. Do you want to exit the dungeon?")
+            if yesno():
+                break
+        else:
+            print("you need 100 fame or more to exit the dungeon")
     if effect == "shop":
         if hero.gold < 10:
             print("You find a healer, but you have not enough gold")
@@ -348,9 +398,11 @@ while hero.hitpoints > 0 and hero.crazy < 100:
                 
                 input("press ENTER to continue")
 
-print("Game Over")                
+              
 if hero.fame >= 100:
     print("Victory")
+else:
+    print("Game Over")  
                 
         
 
