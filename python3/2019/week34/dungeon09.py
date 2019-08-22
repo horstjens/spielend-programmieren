@@ -165,15 +165,15 @@ class Princess(Monster):
             ally = None
         if self.mood < 0:
             text, effect1, effect2 = random.choice((
-               ("makes fun of {}".format(victim), -5, 1),
-               ("slaps {} with her handbag...".format(victim), -10, -1),
-               ("steal some item of {}".format(victim), -8, 3)
+               ("makes fun of {}".format(victim.name), -5, 1),
+               ("slaps {} with her handbag...".format(victim.name), -10, -1),
+               ("steal some item of {}".format(victim.name), -8, 3)
                ))
         else:
             text, effect1, effect2 = random.choice((
-               ("tells a funny story about {}".format(victim), 3, 1),
-               ("make a compliment about the look of {}".format(victim), 5, 0),
-               ("makes a little gift for {}".format(victim), 5, 1)
+               ("tells a funny story about {}".format(victim.name), 3, 1),
+               ("make a compliment about the look of {}".format(victim.name), 5, 0),
+               ("makes a little gift for {}".format(victim.name), 5, 1)
                ))
         victim.mood += effect1
         text = text + "changing her mood by {}".format(effect1)
