@@ -177,7 +177,7 @@ class Princess(Monster):
                ))
         victim.mood += effect1
         text = text + "changing her mood by {}".format(effect1)
-        if ally is not None:
+        if ally is not None and effect2 != 0:
             ally.mood += effect2
             text += "\n and also effecting the mood of her friend {} by {}".format(ally.name, effect2)
         print(text)
