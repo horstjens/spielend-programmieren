@@ -1047,7 +1047,7 @@ class Viewer(object):
         for y in range(0, Viewer.height, 100):
             line = []
             for x in range(0, Viewer.width, 100):
-                line.append([random.randint(64,172),0])
+                line.append([random.randint(120,136),0])
             self.cells.append(line)
         
     def paint_cells(self):
@@ -1269,21 +1269,23 @@ class Viewer(object):
                     for p in self.playergroup:
                         distance = p.pos - cellvector
                         if distance.length() < 50:
-                            print("blubb", x, y, radius)
+                            print("blubb", x, y, radius, color)
                             radius += 1
                             if radius > 70:
                                 radius = 1
                                 if p.number == 0:
-                                    delta = -1
+                                    delta = -2
                                 elif p.number == 1:
-                                    delta = 1
+                                    delta = 2
                                 color += delta
                                 color = min(255, color)
                                 color = max(0, color)
+                                if color == 0 or color == 255:
+                                    radius = 0
                                 self.cells[y][x][0] = color
                             self.cells[y][x][1] = radius
                             pygame.draw.circle(self.screen, (random.randint(128,255), random.randint(128,255), random.randint(128,255)),
-                                (x*100+50, y*100+50), radius, 1)
+                                (x*100+50, y*100+50), radius+1, 1)
                 
                             break
                     else:
