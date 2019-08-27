@@ -706,7 +706,9 @@ class Viewer(object):
             li.append(str(x)+"x"+str(y))
         Viewer.menu["resolution"] = li
         self.set_resolution()
-        
+        self.gridsize = 100
+        self.influence_radius = 50
+        self.convert_rate = 2 # how much color value (128=neutral, 0/255=full) changes per second
         
         # ------ background images ------
         #self.backgroundfilenames = [] # every .jpg file in folder 'data'
@@ -1030,31 +1032,39 @@ class Viewer(object):
     
     
     def draw_grid(self):
-        """draw 50x50 grid"""
-        for y in range(0, Viewer.height, 100):
+        """draw self.gridsize=100 x 100? grid"""
+        for y in range(0, Viewer.height, self.gridsize):
             pygame.draw.line(self.screen, (200,200,200),
                 (0,y), (Viewer.width,y))
-        for x in range(0, Viewer.width, 100):
+        for x in range(0, Viewer.width, self.gridsize):
             pygame.draw.line(self.screen, (200,200,200),
                 (x, 0), (x, Viewer.height))
         
     
     def calculate_grid(self):
-        """ makes 100 x 100 grid, each grid cell 
+        """ makes (self.gridsze=100) x 100 grid, each grid cell 
             has a color value from 0 to 255
             and an radius value"""
         self.cells = []
-        for y in range(0, Viewer.height, 100):
+        for y in range(0, Viewer.height, self.gridsize):
             line = []
-            for x in range(0, Viewer.width, 100):
-                line.append([random.randint(120,136),0])
+            for x in range(0, Viewer.width, self.gridsize):
+                #c = random.randint(96,160)
+                c = 128
+                line.append([c,0])
             self.cells.append(line)
         
     def paint_cells(self):
         for y, line in enumerate(self.cells):
             for x, (color, radius) in enumerate(line):
-                pygame.draw.rect(self.screen, (0, 0, color),
-                     (x*100, y*100, 100, 100))
+                if color == 128:
+                    c = (128,128,128)
+                elif color < 128:
+                    c = (color,0,0)
+                else:
+                    c = (0,0, color)
+                pygame.draw.rect(self.screen, c,
+                     (x*self.gridsize, y*self.gridsize, self.gridsize, self.gridsize))
                     
         
     
@@ -1265,19 +1275,19 @@ class Viewer(object):
                 for x, (color, radius) in enumerate(line):
                     if color  == 0 or color == 255:
                         continue
-                    cellvector = pygame.math.Vector2(x*100+50, -y*100-50)
+                    cellvector = pygame.math.Vector2(x*self.gridsize+self.gridsize//2, -y*self.gridsize-self.gridsize//2)
                     for p in self.playergroup:
                         distance = p.pos - cellvector
-                        if distance.length() < 50:
-                            print("blubb", x, y, radius, color)
+                        if distance.length() < self.influence_radius:
+                            #print("blubb", x, y, radius, color)
                             radius += 1
                             if radius > 70:
                                 radius = 1
                                 if p.number == 0:
-                                    delta = -2
+                                    delta = -1
                                 elif p.number == 1:
-                                    delta = 2
-                                color += delta
+                                    delta = 1
+                                color += delta * self.convert_rate
                                 color = min(255, color)
                                 color = max(0, color)
                                 if color == 0 or color == 255:
@@ -1285,7 +1295,7 @@ class Viewer(object):
                                 self.cells[y][x][0] = color
                             self.cells[y][x][1] = radius
                             pygame.draw.circle(self.screen, (random.randint(128,255), random.randint(128,255), random.randint(128,255)),
-                                (x*100+50, y*100+50), radius+1, 1)
+                                (x*self.gridsize+self.gridsize//2, y*self.gridsize+self.gridsize//2), radius+1, 1)
                 
                             break
                     else:
