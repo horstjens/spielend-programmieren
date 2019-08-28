@@ -695,6 +695,7 @@ class Explosion():
     
 
 class Viewer():
+    credits="learn to code python at spielend-programmieren.at " 
     width = 0
     height = 0
     border_x=500
@@ -706,39 +707,20 @@ class Viewer():
     missles = 1
     images = {}
     sounds = {}
-    menu =  {"main":            ["resume", "settings", "credits", "keys", "quit" ],
+    menu =  {"main":            ["resume", "settings", "credits", "help", "quit" ],
             #main
-            "settings":        ["back", "video", "difficulty", "reset all values", "grid size", "influence radius"],
+            "settings":        ["back", "video", "grid size", "influence radius"],
             #settings
             "influence radius":["back", "25", "50", "75", "100", "125", "150", "175", "200", "225", "250", "300", "350", "400"],  
             "grid size":       ["back", "25", "50", "75", "100", "125", "150", "175", "200"  ],
-            "difficulty":      ["back", "powerups", "bosshealth", "playerhealth"],
+            
             "video":           ["back", "resolution", "fullscreen"],
             #keys
-            "keys":                 ["back to main menu", "", "Cannon1:", "", "arrow keys: move", "right shift: launch racket", "right CTRL: fire some bullets", "",
-                                        "Cannon2:", "", "w: forward", "s: backward", "a: left", "d: right", "left shift: launch racket", "left CTRL: fire some bullets"],
-            #difficulty
-            "bosshealth":      ["back", "1000", "2500", "5000", "10000"],
-            "playerhealth":    ["back", "100", "250", "500", "1000"],
-            "powerups":        ["back", "laser", "bonusrockets", "heal", "shield", "speed"],
-            #powerups
-            "bonusrockets":    ["back", "bonusrocketincrease", "bonusrocket duration"],
-            "laser":           ["back", "laserdamage", "laser duration"],
-            "heal":            ["back", "heal effectiveness"],
-            "shield":          ["back", "bossrocket deflection", "shield duration"],
-            "speed":           ["back", "speed increase", "speed duration"],
-            #powerup effects
-            "bonusrocketincrease": ["back", "1", "2", "3", "5", "10"],
-            "bonusrocket duration": ["back", "10", "30", "60"],
-            "laserdamage":     ["back", "3", "5", "10"],
-            "laser duration": ["back", "10", "30", "60"],            
-            "heal effectiveness": ["back", "50", "100", "250", "full health"],
-            "bossrocket deflection": ["back", "true", "false"],
-            "shield duration": ["back", "10", "30", "60"],
-            "speed increase":  ["back", "3", "5", "10", "15"],
-            "speed duration":  ["back", "10", "30", "60"],
+            "help":            ["back", "", "player1 movement: WASD", "player1 action: left CTRL",
+                                            "player2 movement: Cursor", "player2 action: <not yet>"],
+         
             #video
-            "resolution":      ["back", "720p", "1080p", "1440p", "4k"],
+            "resolution":      ["back", ],
             "fullscreen":      ["back", "true", "false"]
             }
     
@@ -775,6 +757,7 @@ class Viewer():
         self.set_resolution()
         self.gridsize = 100
         self.influence_radius = 50
+        self.calculate_grid() # to have default values for the menu
         self.convert_rate = 2 # how much color value (128=neutral, 0/255=full) changes per second
         
         # ------ background images ------
@@ -901,19 +884,18 @@ class Viewer():
     def place_sprites(self):    
         """create the sprite instances and set them on the correct place on the grid,
            depending on screen resolution and gridsize"""
+        # VectorSprite.numbers[0]
         self.player1 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize,
                               -self.gridsize//2-self.gridsize), lookleft=False)
-        
-        
+        # VectorSprite.numbers[1]
         self.player2 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize*(self.maxx-1),
                                                       -self.gridsize//2 - self.gridsize*(self.maxy-1)), angle = 0, lookleft=True)
-                              
-        
-   
+        # VectorSprite.numbers[2]                      
         self.castle1 = Castle(pos=pygame.math.Vector2(self.gridsize//2, -self.gridsize//2), bossnumber = self.player1.number)
+        # VectorSprite.numbers[3]
         self.castle2 = Castle(pos=pygame.math.Vector2(self.gridsize//2 + self.gridsize* self.maxx,
                                                       -self.gridsize//2-self.gridsize*self.maxy), bossnumber = self.player2.number)
-        #Castle(pos=pygame.math.Vector2(self.width-10, -self.height+10))
+        
         self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
                           move=pygame.math.Vector2(0,30),
                           bounce_on_edge=True )
@@ -955,20 +937,7 @@ class Viewer():
                         Viewer.menu["sound"] = ["back", "enable sound", "disable sound"]
                         Viewer.menu["main"].append("cheat")
                         
-                        
-                    if event.key == pygame.K_f:
-                        if self.v_fullscreen == False:
-                            Viewer.fullscreen = True
-                            self.v_fullscreen = True
-                            self.set_resolution()
-                            print("Fullscreen True")
-                        else:
-                            Viewer.fullscreen = False
-                            self.v_fullscreen = False
-                            self.set_resolution()
-                            print("Fullscreen False")
-                   
-                        
+           
                    # if event.key == pygame.K_ESCAPE:
                        # return -1 # running = False
                     if event.key == pygame.K_UP:
@@ -1010,51 +979,33 @@ class Viewer():
                             Viewer.name = Viewer.history[-1] # get last entry
                             #Viewer.play()
                             # direct action
-                        elif text == "back to main menu":
-                            Viewer.sounds["click1"].play()
-                            Viewer.history = Viewer.history[:-1] # remove last entry
-                            Viewer.cursor = 0
-                            Viewer.name = Viewer.history[-1] # get last entry
-                            #Viewer.play()
-                            # direct action
+                      
                         elif text == "credits":
-                            Flytext(x=700, y=400, text="by Bigm0 and BakTheBig", fontsize = 100, max_age=5)  
+                            Flytext(pos=pygame.math.Vector2(Viewer.width, -50),
+                                    text=Viewer.credits, fontsize = 100, max_age=10,
+                                    move=pygame.math.Vector2(-50,0), color=(200,200,0))  
                         
-                        elif text == "shotgun":
-                            Viewer.shotgun = 2
-                            print("Set shotgun on 2")
-                            
-                        elif text == "double-rocket":
-                            Viewer.double_rocket = 1
-                            print("activated double-rocket")
-                            
-                        elif text == "power-up-and-rocket":
-                            Viewer.puar = 2
-                            print("power-up-and-rocket activated")    
+                       
+                        if Viewer.name == "grid size" and text != "grid size":
+                            self.gridsize = int(text)
+                            Flytext(pos=pygame.math.Vector2(Viewer.width//2,-400),
+                                    move=pygame.math.Vector2(0,25),
+                                    max_age=4,color=(200,200,0),fontsize=44,
+                                    text="grid size is now {}".format(self.gridsize))
+                            self.calculate_grid()
+                                    
+                                     
                         
-                        
-                        elif text == "disable cheat":
-                            Viewer.disablecheat = True
-                            return
+                        elif Viewer.name == "influence radius" and text != "influence radius":
+                            self.influence_radius = int(text)
+                            Flytext(pos=pygame.math.Vector2(Viewer.width//2,-400),
+                                    move=pygame.math.Vector2(0,25),
+                                    max_age=4,color=(200,200,0),fontsize=44,
+                                    text="the influence radius is now {}".format(self.gridsize))
                             
-                        if Viewer.name == "grid size":
-                            print("text is:", text)
-                            try:
-                                self.gridsize = int(text)
-                            except:
-                                print("could not change gridsize to ", text)
-                            print("the gridsize is now", self.gridsize)
-                        
-                        elif Viewer.name == "influence radius":
-                            print("influence radius is:", text)
-                            try:
-                                self.influence_radius = int(text)
-                            except:
-                                print("could not change influence radius to ", text)
-                            print("the influence radius is now", self.gridsize)
                             
-                        if Viewer.name == "resolution":
-                            # text is something like 800x600
+                        if Viewer.name == "resolution" and text != "resolution":
+                            # text is something like "800x600"
                             t = text.find("x")
                             if t != -1:
                                 x = int(text[:t])
@@ -1063,6 +1014,12 @@ class Viewer():
                                 Viewer.height = y
                                 self.set_resolution()
                                 #Viewer.menucommandsound.play()
+                            self.calculate_grid()
+                            Flytext(pos=pygame.math.Vector2(Viewer.width//2,-400),
+                                    move=pygame.math.Vector2(0,25),
+                                    max_age=4,color=(200,200,0),fontsize=44,
+                                    text="screen resolution is now {}x{}".format(Viewer.width, Viewer.height))
+                            
                                     
                         if Viewer.name == "fullscreen":
                             if text == "true":
@@ -1089,6 +1046,17 @@ class Viewer():
             # --- paint menu ----
             # ---- name of active menu and history ---
             write(self.screen, text="you are here:", x=200, y=50, color=(0,255,255))
+            # display of grid size. grid must be at last 4x4
+            if len(self.cells) > 3 and len(self.cells[0]) > 3:
+                text1 = "grid ok"
+                c1 = (0,128,0)
+            else:
+                text1 = "Error: grid must be at last 4x4"
+                c1 = (128,0,0)
+            write(self.screen, text1, x=20, y=Viewer.height-30, color=c1, fontsize = 16)
+            text2 = "grid is {}x{}, grid size: {}, screen resolution: {} x {}".format(
+                     self.maxx, self.maxy, self.gridsize, Viewer.width, Viewer.height)
+            write(self.screen, text2, x=20, y=Viewer.height-15, color=c1, fontsize = 16)
             
             t = "main"
             for nr, i in enumerate(Viewer.history[1:]):
@@ -1141,6 +1109,21 @@ class Viewer():
             and an radius value"""
         self.cells = []
         for y in range(0, Viewer.height, self.gridsize):
+            pass
+        self.maxy = y
+        for x in range(0, Viewer.width, self.gridsize):
+            pass
+        self.maxx = x
+        #print("maxx, maxy", self.maxx, self.maxy)
+        if Viewer.height % self.gridsize != 0 and Viewer.height % self.gridsize < self.gridsize * 0.85 :
+            self.maxy -= 1
+        self.maxx = x // self.gridsize
+        if Viewer.width % self.gridsize != 0 and Viewer.width % self.gridsize < self.gridsize * 0.85 :
+            self.maxx -= 1
+        self.maxy = y // self.gridsize
+        print("maxx, maxy", self.maxx, self.maxy)
+        
+        for y in range(0, Viewer.height, self.gridsize):
             line = []
             for x in range(0, Viewer.width, self.gridsize):
                 #c = random.randint(96,160)
@@ -1148,13 +1131,6 @@ class Viewer():
                 line.append([c,0])
             self.cells.append(line)
             
-        self.maxy = y // self.gridsize
-        if Viewer.height % self.gridsize != 0 and Viewer.height % self.gridsize < self.gridsize * 0.85 :
-            self.maxy -= 1
-        self.maxx = x // self.gridsize
-        if Viewer.width % self.gridsize != 0 and Viewer.width % self.gridsize < self.gridsize * 0.85 :
-            self.maxx -= 1
-        print("maxx, maxy", self.maxx, self.maxy)
         
     def paint_cells(self):
         for y, line in enumerate(self.cells):
@@ -1169,6 +1145,19 @@ class Viewer():
                      (x*self.gridsize, y*self.gridsize, self.gridsize, self.gridsize))
                     
         
+    def pos_to_grid(self, posvector):
+        """get posvector (negative y coordinate!) and returns the (x,y)
+           index of the corresponding grid cell (x and y are both positive)
+        """
+        try:
+            px = posvector.x
+            py = -posvector.y
+        except:
+            print("problem extracting x,y from posvector:", posvector)
+        x = min(self.maxx, px // self.gridsize)
+        y = min(self.maxy, py // self.gridsize)
+        return x, y
+        
     
     def run(self):
         """The mainloop"""
@@ -1176,7 +1165,9 @@ class Viewer():
         running = True
         
         
-        self.menu_run()
+        end = self.menu_run()
+        if end == -1:
+            running = False
         self.calculate_grid()
         self.place_sprites()
         pygame.mouse.set_visible(True)
@@ -1195,10 +1186,6 @@ class Viewer():
         #pygame.mixer.music.load(os.path.join("data", "8BitMetal.ogg"))
         #pygame.mixer.music.play(loops=-1)
         
-        Viewer.border_x = Viewer.width // 2
-        Viewer.border_y = - Viewer.height // 2
-        
-       
         
         while running:
             #pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
@@ -1225,7 +1212,9 @@ class Viewer():
                     if event.key == pygame.K_ESCAPE:
               
                         pygame.mixer.music.load(os.path.join("data", "menu_ogg.ogg"))
-                        Viewer.menu_run(self)
+                        end = Viewer.menu_run(self)
+                        if end == -1:
+                            running = False
                         #pygame.mixer.music.load(os.path.join("data", "8BitMetal.ogg"))
                         #pygame.mixer.music.play(loops=-1)
                     
