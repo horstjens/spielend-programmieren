@@ -319,9 +319,9 @@ class VectorSprite(pygame.sprite.Sprite):
 class Wolf(VectorSprite):
     
     def _overwrite_parameters(self):
-        print("ich bin wolf nummer", self.number)
+        #print("ich bin wolf nummer", self.number)
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
-                    sticky_with_boss = True, ydistance=50,
+                    sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
     
     def create_image(self):
@@ -331,6 +331,15 @@ class Wolf(VectorSprite):
         # self.image0.convert_alpha()
         self.rect = self.image.get_rect()
         
+
+class Player(VectorSprite):
+    
+    def create_image(self):
+        self.image=Viewer.images["player"]
+        self.image0 = self.image.copy()
+        # self.image0.set_colorkey((0,0,0))
+        # self.image0.convert_alpha()
+        self.rect = self.image.get_rect()
 
 class Cannon(VectorSprite):
     
@@ -593,14 +602,14 @@ class Hitpointbar(VectorSprite):
           
      def create_image(self):
          boss = VectorSprite.numbers[self.bossnumber]
-         width = 100
-         self.image = pygame.Surface((width,10))
+         width = self.width
+         self.image = pygame.Surface((width,10)) # size of rect
          #pygame.draw.circle(self.image, self.color, (5,5), 5)
          
          percent = boss.hitpoints / boss.hitpointsfull
          print(percent, boss.hitpoints, boss.hitpointsfull)
          w2 = int(width * percent)
-         pygame.draw.rect(self.image,(0,0,200), (0,0,w2,10)) 
+         pygame.draw.rect(self.image,(0,0,200), (1,1,w2,8)) 
          pygame.draw.rect(self.image, (50,50,255), (0,0,width,10),1)
          self.image.set_colorkey((0,0,0))
          self.image.convert_alpha()
@@ -835,6 +844,7 @@ class Viewer():
             
             Viewer.images["cannon"] = pygame.image.load(os.path.join("data", "cannon.png"))
             Viewer.images["wolf"] = pygame.image.load(os.path.join("data", "wolf.png"))
+            Viewer.images["player"] = pygame.image.load(os.path.join("data", "arch-mage.png"))
             
             # --- scalieren ---
             #for name in Viewer.images:
@@ -889,7 +899,11 @@ class Viewer():
         self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
                           move=pygame.math.Vector2(0,30),
                           bounce_on_edge=True )
-   
+        
+        self.player1 = Player(pos = pygame.math.Vector2(self.gridsize,
+                              -self.gridsize))
+        self.player2 = Player(pos = pygame.math.Vector2(self.gridsize*10,
+                              -self.gridsize*5), angle = 0)
    
     def menu_run(self):
         running = True
@@ -1386,6 +1400,8 @@ class Viewer():
                                     delta = -1
                                 elif p.number == 1:
                                     delta = 1
+                                else:
+                                    delta = 0
                                 color += delta * self.convert_rate
                                 color = min(255, color)
                                 color = max(0, color)
