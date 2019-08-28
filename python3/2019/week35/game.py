@@ -1459,8 +1459,14 @@ class Viewer():
             # write text below sprites (fps, sparks)
             write(self.screen, "FPS: {:8.3}".format(
                 self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(200,200,200))
-            redcells = len([c for c in self.cells if c[0]==0])
-            bluecells = len([c for c in self.cells if c[0]==255])
+            redcells = 0
+            bluecells = 0
+            for line in self.cells:
+                for (color, irrelevant_value) in line:
+                    if color == 0:
+                        redcells += 1
+                    elif color == 255:
+                        bluecells += 1
             write(self.screen, "player1: {} cells vs. player2: {} cells".format(redcells, bluecells) , x=300, y=10, color=(255,255,255))
             #write(self.screen, str(len(self.bulletgroup)), x=Viewer.width-100, y=Viewer.height-30, color=(200,200,200))
            
