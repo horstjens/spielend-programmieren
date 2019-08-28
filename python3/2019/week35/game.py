@@ -267,7 +267,7 @@ class VectorSprite(pygame.sprite.Sprite):
                 boss = VectorSprite.numbers[self.bossnumber]
                 self.pos = pygame.math.Vector2(boss.pos.x, boss.pos.y+self.ydistance)
                 self.set_angle(boss.angle)
-                print(self.number, self.bossnumber, boss)
+                #print(self.number, self.bossnumber, boss)
         self.pos += self.move * seconds
         self.move *= self.friction 
         self.distance_traveled += self.move.length() * seconds
@@ -340,7 +340,11 @@ class Player(VectorSprite):
                     always_calculate_image = True)
     
     def create_image(self):
-        self.image=Viewer.images["player"]
+        if self.lookleft:
+            self.image = Viewer.images["player"]
+            self.image = pygame.transform.flip(self.image, True, False)
+        else:
+            self.image=Viewer.images["player"]
         self.image0 = self.image.copy()
         # self.image0.set_colorkey((0,0,0))
         # self.image0.convert_alpha()
@@ -610,7 +614,7 @@ class Hitpointbar(VectorSprite):
          #pygame.draw.circle(self.image, self.color, (5,5), 5)
          
          percent = boss.hitpoints / boss.hitpointsfull
-         print(percent, boss.hitpoints, boss.hitpointsfull)
+         #print(percent, boss.hitpoints, boss.hitpointsfull)
          w2 = int(width * percent)
          pygame.draw.rect(self.image,(0,0,200), (1,1,w2,8)) 
          pygame.draw.rect(self.image, (50,50,255), (0,0,width,10),1)
@@ -618,6 +622,7 @@ class Hitpointbar(VectorSprite):
          self.image.convert_alpha()
          self.rect= self.image.get_rect()
          self.image0 = self.image.copy()
+         #self.rect.centerx = boss.rect.centerx
          #self.rect.centerx = boss.rect.centerx
          #self.rect.centery = boss.rect.centery - 100
 
@@ -867,51 +872,53 @@ class Viewer():
         self.bulletgroup = pygame.sprite.Group()
         self.playergroup= pygame.sprite.Group()
         self.rocketgroup = pygame.sprite.Group()
-        self.powerupgroup = pygame.sprite.Group()
-        self.guardiangroup = pygame.sprite.Group()
+        
+        #self.powerupgroup = pygame.sprite.Group()
+        #self.guardiangroup = pygame.sprite.Group()
         self.castlegroup = pygame.sprite.Group()
         self.towergroup = pygame.sprite.Group()
         self.bargroup = pygame.sprite.Group()
         self.wolfgroup = pygame.sprite.Group()
+        #self.group1=pygame.sprite.Group()
+        #self.group2=pygame.sprite.Group()
+        self.targetgroup = pygame.sprite.Group()
         VectorSprite.groups = self.allgroup
         Flytext.groups = self.allgroup, self.flytextgroup
         
         Cannon.groups = self.allgroup, self.playergroup
+        
         Bullet.groups = self.allgroup, self.bulletgroup
-        Rocket.groups = self.allgroup, self.rocketgroup
-        PowerUp.groups = self.allgroup, self.powerupgroup
-        Guardian.groups = self.allgroup, self.guardiangroup
-        Castle.groups = self.allgroup, self.castlegroup
+        Rocket.groups = self.allgroup, self.rocketgroup, self.targetgroup
+        
+        #PowerUp.groups = self.allgroup, self.powerupgroup
+        #Guardian.groups = self.allgroup, self.guardiangroup
+        Castle.groups = self.allgroup, self.castlegroup, self.targetgroup
         Wolf.groups = self.allgroup, self.wolfgroup
         Hitpointbar.groups = self.allgroup, self.bargroup
-        Tower.groups = self.allgroup, self.towergroup
+        Tower.groups = self.allgroup, self.towergroup, self.targetgroup
+    
+    
+    def place_sprites(self):    
+        """create the sprite instances and set them on the correct place on the grid,
+           depending on screen resolution and gridsize"""
+        self.player1 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize,
+                              -self.gridsize//2-self.gridsize), lookleft=False)
         
-        #Catapult.groups = self.allgroup,
-        #self.player1 =  Player(imagename="player1", warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2-100,-Viewer.height/2))
-        #self.player2 =  Player(imagename="player2", angle=180,warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2+100,-Viewer.height/2))
-        self.cannon1 = Cannon(bounce_on_edge=True, color=(255,255,0),  pos=pygame.math.Vector2(Viewer.width - 50, -Viewer.height//2),
-                        left_border=0, right_border=Viewer.width,
-                        lower_border=-Viewer.height, upper_border = 0, lives=3)
-        self.cannon2 = Cannon(bounce_on_edge=True, color=(0,0,255),
-                        left_border=0, right_border=Viewer.width, pos=pygame.math.Vector2(50, -Viewer.height//2),
-                        lower_border=-Viewer.height, upper_border=0, lives=3, angle=180)
-        #self.cannon3 = Cannon(target = None, bounce_on_edge=True, color=(255,165,0),
-        #                        left_border=0, right_border=Viewer.width, pos=pygame.math.Vector2(500, -500),
-        #                        lower_border = - Viewer.height, upper_border= 0, lives=0)
         
-        #self.castl1 = Castle(pos=pygame.math.Vector2(10, -10))
-        self.castle2 = Castle(pos=pygame.math.Vector2(10, -self.height +10), bossnumber = self.cannon2.number)
-        self.castle1 = Castle(pos=pygame.math.Vector2(self.width-10, -10), bossnumber = self.cannon1.number)
+        self.player2 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize*(self.maxx-1),
+                                                      -self.gridsize//2 - self.gridsize*(self.maxy-1)), angle = 0, lookleft=True)
+                              
+        
+   
+        self.castle1 = Castle(pos=pygame.math.Vector2(self.gridsize//2, -self.gridsize//2), bossnumber = self.player1.number)
+        self.castle2 = Castle(pos=pygame.math.Vector2(self.gridsize//2 + self.gridsize* self.maxx,
+                                                      -self.gridsize//2-self.gridsize*self.maxy), bossnumber = self.player2.number)
         #Castle(pos=pygame.math.Vector2(self.width-10, -self.height+10))
         self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
                           move=pygame.math.Vector2(0,30),
                           bounce_on_edge=True )
         
-        self.player1 = Player(pos = pygame.math.Vector2(self.gridsize,
-                              -self.gridsize))
-        self.player2 = Player(pos = pygame.math.Vector2(self.gridsize*10,
-                              -self.gridsize*5), angle = 0)
-   
+        
     def menu_run(self):
         running = True
         pygame.mouse.set_visible(True)
@@ -1116,23 +1123,16 @@ class Viewer():
         #    self.cannon3.target = self.cannon2
     
             
-    def update_border(self):
-        # cannon1 starts right upper quarter
-        self.cannon1.left_border = Viewer.border_x
-        self.cannon1.lower_border = Viewer.border_y
-        # cannon2 starts left lower quareter
-        self.cannon2.right_border = Viewer.border_x
-        self.cannon2.upper_border = Viewer.border_y
     
     
     def draw_grid(self):
         """draw self.gridsize=100 x 100? grid"""
         for y in range(0, Viewer.height, self.gridsize):
             pygame.draw.line(self.screen, (200,200,200),
-                (0,y+self.gridsize//2), (Viewer.width,y+self.gridsize//2))
+                (0,y), (Viewer.width,y))
         for x in range(0, Viewer.width, self.gridsize):
             pygame.draw.line(self.screen, (200,200,200),
-                (x+self.gridsize//2, 0), (x+self.gridsize//2, Viewer.height))
+                (x, 0), (x, Viewer.height))
         
     
     def calculate_grid(self):
@@ -1147,6 +1147,14 @@ class Viewer():
                 c = 128
                 line.append([c,0])
             self.cells.append(line)
+            
+        self.maxy = y // self.gridsize
+        if Viewer.height % self.gridsize != 0 and Viewer.height % self.gridsize < self.gridsize * 0.85 :
+            self.maxy -= 1
+        self.maxx = x // self.gridsize
+        if Viewer.width % self.gridsize != 0 and Viewer.width % self.gridsize < self.gridsize * 0.85 :
+            self.maxx -= 1
+        print("maxx, maxy", self.maxx, self.maxy)
         
     def paint_cells(self):
         for y, line in enumerate(self.cells):
@@ -1170,25 +1178,20 @@ class Viewer():
         
         self.menu_run()
         self.calculate_grid()
+        self.place_sprites()
         pygame.mouse.set_visible(True)
         oldleft, oldmiddle, oldright  = False, False, False
-        self.select_target()
+        #self.select_target()
         
         
         minimum_sparks = 0
-        zwischenvariable = 0
-        
-        lives_cannon1 = 5
-        lives_cannon2 = 5
+  
+  
         #lives_cannon3 = 5
   
         count_powerup = 0
-        
-        
-        
-        
-        
-        fps_warnung = False
+   
+        #fps_warnung = False
         #pygame.mixer.music.load(os.path.join("data", "8BitMetal.ogg"))
         #pygame.mixer.music.play(loops=-1)
         
@@ -1207,22 +1210,10 @@ class Viewer():
             
             
             fps = self.clock.get_fps()
-            if fps < 20:
-                '''for s in self.allgroup:
-                    if s.__class__.__name__ == "Spark":
-                        s.kill()
-                    if s.__class__.__name__ == "Bullet":
-                        s.kill()'''
-                if fps_warnung == False:
-                    Flytext(pos=pygame.math.Vector2(1342, -51), text="Zu wenig FPS!", fontsize = 30, max_age=10)
-                    fps_warnung = True
             
-            else:
-                fps_warnung = False
-            
-         
-            for p in self.playergroup:
-                p.move *= 0.99
+            # ... friction ....       
+            #for p in self.playergroup:
+            #    p.move *= 0.99
             
             
             # -------- events ------
@@ -1387,12 +1378,6 @@ class Viewer():
                       
                       elastic_collision(o, p)
                       
-                      if p.number == 0:
-                            Viewer.border_y += 1
-                            self.update_border()
-                      if p.number == 1:
-                            Viewer.border_y -= 1
-                            self.update_border()
                       
                       o.kill()
                       
@@ -1465,34 +1450,7 @@ class Viewer():
                     o.kill()
                     p.lives += 1
             
-            #----- maximal 5 PowerUps ----
-            if random.random() < 0.001:
-                if len(self.powerupgroup) < 5:
-                    PowerUp()
-                if len(self.guardiangroup) < 5:
-                    Guardian()
-                    
-            #for x in (self.cannon1, self.cannon2):
-                #x.lives += 1
-                
-            write(self.screen, "Cannon1: " + str(self.cannon1.lives), x=200, y=50, color=(200,200,200))
-            write(self.screen, "Cannon2: " + str(self.cannon2.lives), x=200, y=100, color=(200,200,200))
-      
-            for l in (self.cannon1, self.cannon2):
-               if l.lives == 0:
-                  if l.number == 0:
-                      print("Cannon1 hat verloren")
-                      #pygame.quit()
-                  elif l.number == 1:
-                      print("Cannon2 hat verloren")
-                      #pygame.quit()
-               else:
-                   pass
-            
-            
-                   
-            
-                   
+       
                    
             # ================ UPDATE all sprites =====================
             self.allgroup.update(seconds)
