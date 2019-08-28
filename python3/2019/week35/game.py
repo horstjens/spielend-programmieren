@@ -90,11 +90,13 @@ class VectorSprite(pygame.sprite.Sprite):
 
     def __init__(self, **kwargs):
         self._default_parameters(**kwargs)
-        self._overwrite_parameters()
-        pygame.sprite.Sprite.__init__(self, self.groups) #call parent class. NEVER FORGET !
-        self.number = VectorSprite.number # unique number for each sprite
         VectorSprite.number += 1
         VectorSprite.numbers[self.number] = self
+        self.number = VectorSprite.number # unique number for each sprite
+        self._overwrite_parameters()
+        pygame.sprite.Sprite.__init__(self, self.groups) #call parent class. NEVER FORGET !
+        
+       
         self.create_image()
         self.distance_traveled = 0 # in pixel
         #self.rect.center = (-300,-300) # avoid blinking image in topleft corner
@@ -190,6 +192,8 @@ class VectorSprite(pygame.sprite.Sprite):
             self.speed = 0
         if "color" not in kwargs:
             self.color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+        if "always_calculate_image" not in kwargs:
+            self.always_calculate_image = False
 
     def kill(self):
         if self.number in self.numbers:
@@ -251,6 +255,9 @@ class VectorSprite(pygame.sprite.Sprite):
             self.kill()
         if self.max_distance is not None and self.distance_traveled > self.max_distance:
             self.kill()
+        # ---- new image calculating ? ---
+        if self.always_calculate_image:
+            self.create_image()
         # ---- movement with/without boss ----
         if self.bossnumber is not None:
             if self.kill_with_boss:
@@ -258,8 +265,9 @@ class VectorSprite(pygame.sprite.Sprite):
                     self.kill()
             if self.sticky_with_boss and self.bossnumber in VectorSprite.numbers:
                 boss = VectorSprite.numbers[self.bossnumber]
-                self.pos = pygame.math.Vector2(boss.pos.x, boss.pos.y)
+                self.pos = pygame.math.Vector2(boss.pos.x, boss.pos.y+self.ydistance)
                 self.set_angle(boss.angle)
+                print(self.number, self.bossnumber, boss)
         self.pos += self.move * seconds
         self.move *= self.friction 
         self.distance_traveled += self.move.length() * seconds
@@ -308,7 +316,21 @@ class VectorSprite(pygame.sprite.Sprite):
                 self.pos.y = 0
 
 
+class Wolf(VectorSprite):
     
+    def _overwrite_parameters(self):
+        print("ich bin wolf nummer", self.number)
+        Hitpointbar(bossnumber=self.number, kill_with_boss = True,
+                    sticky_with_boss = True, ydistance=50,
+                    always_calculate_image = True)
+    
+    def create_image(self):
+        self.image=Viewer.images["wolf"]
+        self.image0 = self.image.copy()
+        # self.image0.set_colorkey((0,0,0))
+        # self.image0.convert_alpha()
+        self.rect = self.image.get_rect()
+        
 
 class Cannon(VectorSprite):
     
@@ -561,7 +583,33 @@ class Rocket (VectorSprite):
        def kill(self):
            #Explosion (posvector=self.pos, minsparks=20, maxsparks=30)
            VectorSprite.kill(self)
-           
+       
+class Hitpointbar(VectorSprite):
+    
+     def _overwrite_parameters(self):
+         print("ich bin hitpointbar", self.number, "my bossnumber is", self.bossnumber)
+         #print("my boss is a ", VectorSprite.numbers[self.bossnumber])
+          
+          
+     def create_image(self):
+         boss = VectorSprite.numbers[self.bossnumber]
+         width = 100
+         self.image = pygame.Surface((width,10))
+         #pygame.draw.circle(self.image, self.color, (5,5), 5)
+         
+         percent = boss.hitpoints / boss.hitpointsfull
+         print(percent, boss.hitpoints, boss.hitpointsfull)
+         w2 = int(width * percent)
+         pygame.draw.rect(self.image,(0,0,200), (0,0,w2,10)) 
+         pygame.draw.rect(self.image, (50,50,255), (0,0,width,10),1)
+         self.image.set_colorkey((0,0,0))
+         self.image.convert_alpha()
+         self.rect= self.image.get_rect()
+         self.image0 = self.image.copy()
+         #self.rect.centerx = boss.rect.centerx
+         #self.rect.centery = boss.rect.centery - 100
+
+    
     
 class Bullet (VectorSprite):
     
@@ -629,7 +677,7 @@ class Explosion():
     
     
 
-class Viewer(object):
+class Viewer():
     width = 0
     height = 0
     border_x=500
@@ -643,8 +691,10 @@ class Viewer(object):
     sounds = {}
     menu =  {"main":            ["resume", "settings", "credits", "keys", "quit" ],
             #main
-            "settings":        ["back", "video", "difficulty", "reset all values"],
+            "settings":        ["back", "video", "difficulty", "reset all values", "grid size", "influence radius"],
             #settings
+            "influence radius":["back", "25", "50", "75", "100", "125", "150", "175", "200", "225", "250", "300", "350", "400"],  
+            "grid size":       ["back", "25", "50", "75", "100", "125", "150", "175", "200"  ],
             "difficulty":      ["back", "powerups", "bosshealth", "playerhealth"],
             "video":           ["back", "resolution", "fullscreen"],
             #keys
@@ -784,6 +834,8 @@ class Viewer(object):
             ##self.create_selected("catapult1")
             
             Viewer.images["cannon"] = pygame.image.load(os.path.join("data", "cannon.png"))
+            Viewer.images["wolf"] = pygame.image.load(os.path.join("data", "wolf.png"))
+            
             # --- scalieren ---
             #for name in Viewer.images:
             #    if name == "bossrocket":
@@ -803,6 +855,8 @@ class Viewer(object):
         self.powerupgroup = pygame.sprite.Group()
         self.guardiangroup = pygame.sprite.Group()
         self.castlegroup = pygame.sprite.Group()
+        self.bargroup = pygame.sprite.Group()
+        self.wolfgroup = pygame.sprite.Group()
         VectorSprite.groups = self.allgroup
         Flytext.groups = self.allgroup, self.flytextgroup
         
@@ -812,6 +866,8 @@ class Viewer(object):
         PowerUp.groups = self.allgroup, self.powerupgroup
         Guardian.groups = self.allgroup, self.guardiangroup
         Castle.groups = self.allgroup, self.castlegroup
+        Wolf.groups = self.allgroup, self.wolfgroup
+        Hitpointbar.groups = self.allgroup, self.bargroup
         
         #Catapult.groups = self.allgroup,
         #self.player1 =  Player(imagename="player1", warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2-100,-Viewer.height/2))
@@ -830,7 +886,9 @@ class Viewer(object):
         self.castle2 = Castle(pos=pygame.math.Vector2(10, -self.height +10), bossnumber = self.cannon2.number)
         self.castle1 = Castle(pos=pygame.math.Vector2(self.width-10, -10), bossnumber = self.cannon1.number)
         #Castle(pos=pygame.math.Vector2(self.width-10, -self.height+10))
-        
+        self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
+                          move=pygame.math.Vector2(0,30),
+                          bounce_on_edge=True )
    
    
     def menu_run(self):
@@ -951,7 +1009,22 @@ class Viewer(object):
                             Viewer.disablecheat = True
                             return
                             
+                        if Viewer.name == "grid size":
+                            print("text is:", text)
+                            try:
+                                self.gridsize = int(text)
+                            except:
+                                print("could not change gridsize to ", text)
+                            print("the gridsize is now", self.gridsize)
                         
+                        elif Viewer.name == "influence radius":
+                            print("influence radius is:", text)
+                            try:
+                                self.influence_radius = int(text)
+                            except:
+                                print("could not change influence radius to ", text)
+                            print("the influence radius is now", self.gridsize)
+                            
                         if Viewer.name == "resolution":
                             # text is something like 800x600
                             t = text.find("x")
@@ -1170,9 +1243,35 @@ class Viewer(object):
                         
                         self.cannon2.launch()
                     
+                    if event.key == pygame.K_1:
+                        self.wolf1.hitpoints -= 1
+                    if event.key == pygame.K_2:
+                        self.wolf1.hitpoints += 1
+                    
+                    
                       
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
+            
+            # ----- wolf1 control ------
+            if pressed_keys[pygame.K_i]:
+                self.wolf1.move.y += 0.1
+                ## -- no move ? ---
+                #if self.wolf1.move.length() == 0:
+                #    self.wolf1.move = pygame.math.Vector2(0.1, 0)
+                #else:
+                #    self.wolf1.move *= 1.1 # 10% more speed
+            if pressed_keys[pygame.K_k]:
+                self.wolf1.move.y -= 0.1
+                #self.wolf1.move *= 0.9 # 10% less speed
+            if pressed_keys[pygame.K_l]:
+                self.wolf1.move.x += 0.1
+                #self.wolf1.move.rotate_ip(-1)
+            if pressed_keys[pygame.K_j]:
+                self.wolf1.move.x -= 0.1
+                #self.wolf1.move.rotate_ip(1)
+                
+            
             # ------- movement keys for player1 -------
             
             if pressed_keys[pygame.K_LEFT]:
