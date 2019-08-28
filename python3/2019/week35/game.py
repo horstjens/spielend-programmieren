@@ -500,51 +500,8 @@ class Flytext(VectorSprite):
         self.image = make_text(self.text, (self.r, self.g, self.b), self.fontsize)  # font 22
         self.rect = self.image.get_rect()
  
-class Guardian(VectorSprite):
-    def _overwrite_parameters(self):
-          self._layer = 9
-          self.kill_on_edge = True
-          self.pos = pygame.math.Vector2(random.randint(0, Viewer.width),
-                                                            random.randint(-Viewer.height,0))
-          self. max_age = 15
-          
-          v = pygame.math.Vector2(random.randint(2, 2), 0)
-          v.rotate_ip(random.randint(0, 360))
-          self.move = v
-                            
-          
-    def create_image(self):
-          self.image = pygame.Surface((50,50))
-          pygame.draw.circle(self.image, (139, 105, 20) , (25, 25), 20)
-          pygame.draw.circle(self.image, (223, 21,44) , (25,25), 13)
-          self.image.set_colorkey((0,0,0))
-          self.image.convert_alpha()
-          self.rect= self.image.get_rect()
-          self.image0 = self.image.copy() 
- 
- 
-class PowerUp(VectorSprite):
-    def _overwrite_parameters(self):
-          self._layer = 9
-          self.kill_on_edge = True
-          self.pos = pygame.math.Vector2(random.randint(0, Viewer.width),
-                                                            random.randint(-Viewer.height,0))
-          self. max_age = 15
-          
-          v = pygame.math.Vector2(random.randint(10, 25), 0)
-          v.rotate_ip(random.randint(0, 360))
-          self.move = v
-                            
-          
-    def create_image(self):
-          self.image = pygame.Surface((30,30))
-          pygame.draw.circle(self.image, (200, 200, 200) , (15,15), 15)
-          pygame.draw.circle(self.image, (255, 64, 0) , (15,15), 10)
-          self.image.set_colorkey((0,0,0))
-          self.image.convert_alpha()
-          self.rect= self.image.get_rect()
-          self.image0 = self.image.copy()
- 
+
+
  
 class Castle(VectorSprite):
         
@@ -590,9 +547,13 @@ class Rocket(VectorSprite):
            #rotate sprite
            self.set_angle(-a)
            #self.move.rotate_ip(a)
-           diff.normalize_ip()
+           try:
+               diff.normalize_ip()
+               self.move += diff * 25
+           except:
+               print("problem with normalizing diffvector", diff)
            self.move *= 0.8
-           self.move += diff * 25
+           
            
            self.trail.insert (0, (self.pos.x, -self.pos.y))
            if len(self.trail) > 255:
@@ -664,9 +625,9 @@ class Spark(VectorSprite):
         
     def create_image(self):
         r,g,b = self.color
-        r = randomize_color(r,50)
-        g = randomize_color(g,50)
-        b = randomize_color(b,50)
+        #r = randomize_color(r,50)
+        #g = randomize_color(g,50)
+        #b = randomize_color(b,50)
         self.image = pygame.Surface((10,10))
         pygame.draw.line(self.image, (r,g,b), 
                          (10,5), (5,5), 3)
@@ -677,13 +638,35 @@ class Spark(VectorSprite):
         self.rect= self.image.get_rect()
         self.image0 = self.image.copy()                          
         
+class Ring(VectorSprite):
+    
+     def _overwrite_parameters(self):
+        self._layer = 9
+        self.kill_on_edge = True
+        
+     def create_image(self):
+        r,g,b = self.color
+        #r = randomize_color(r,50)
+        #g = randomize_color(g,50)
+        #b = randomize_color(b,50)
+        self.image = pygame.Surface((16,16))
+        r1 = random.randint(2,8)
+        pygame.draw.circle(self.image, (r,g,b), 
+                         (15,15), r1)
+        r2 = random.randint(1, r1-1)
+        pygame.draw.circle(self.image, (r,g,b), 
+                         (15,15), r2)
+        self.image.set_colorkey((0,0,0))
+        self.image.convert_alpha()
+        self.rect= self.image.get_rect()
+        self.image0 = self.image.copy()  
 
 class Explosion():
     """emits a lot of sparks, for Explosion or Player engine"""
     def __init__(self, posvector, minangle=0, maxangle=360, maxlifetime=3,
                  minspeed=5, maxspeed=150, red=255, red_delta=0, 
                  green=225, green_delta=25, blue=0, blue_delta=0,
-                 minsparks=5, maxsparks=20):
+                 minsparks=5, maxsparks=20, shape="spark"):
         for s in range(random.randint(minsparks,maxsparks)):
             v = pygame.math.Vector2(1,0) # vector aiming right (0°)
             a = random.randint(minangle,maxangle)
@@ -693,9 +676,14 @@ class Explosion():
             red   = randomize_color(red, red_delta)
             green = randomize_color(green, green_delta)
             blue  = randomize_color(blue, blue_delta)
-            Spark(pos=pygame.math.Vector2(posvector.x, posvector.y),
-                  angle= a, move=v*speed, max_age = duration, 
-                  color=(red,green,blue), kill_on_edge = True)
+            if shape=="spark":
+                Spark(pos=pygame.math.Vector2(posvector.x, posvector.y),
+                      angle= a, move=v*speed, max_age = duration, 
+                      color=(red,green,blue), kill_on_edge = True)
+            elif shape == "ring":
+                Ring(pos=pygame.math.Vector2(posvector.x, posvector.y),
+                      angle= a, move=v*speed, max_age = duration, 
+                      color=(red,green,blue), kill_on_edge = True)
     
 
 
@@ -768,7 +756,9 @@ class Viewer():
         self.gridsize = 100
         self.influence_radius = 50
         self.calculate_grid() # to have default values for the menu
-        self.convert_rate = 2 # how much color value (128=neutral, 0/255=full) changes per second
+        self.convert_rate = 8.6 # how much color value (128=neutral, 0/255=full) changes per second
+        self.convert_rate_back = 0.2 # how fast an "alone", not fully converted field changes per second back to neutral
+        #self.convert_rate_slow = 1.5 # how much color value changes per second if already full converted to opponent
         
         # ------ background images ------
         #self.backgroundfilenames = [] # every .jpg file in folder 'data'
@@ -882,7 +872,7 @@ class Viewer():
         
         Bullet.groups = self.allgroup, self.bulletgroup
         Rocket.groups = self.allgroup, self.rocketgroup, self.targetgroup
-        
+        Player.groups = self.allgroup, self.playergroup, self.targetgroup,
         #PowerUp.groups = self.allgroup, self.powerupgroup
         #Guardian.groups = self.allgroup, self.guardiangroup
         Castle.groups = self.allgroup, self.castlegroup, self.targetgroup
@@ -1135,11 +1125,12 @@ class Viewer():
         self.maxy = y // self.gridsize
         print("maxx, maxy", self.maxx, self.maxy)
         
-        for y in range(0, Viewer.height, self.gridsize):
+        for y in range(0, self.maxy+1):
             line = []
-            for x in range(0, Viewer.width, self.gridsize):
+            for x in range(0, self.maxx+1):
                 #c = random.randint(96,160)
                 c = 128
+                # 0: color, 1: ??
                 line.append([c,0])
             self.cells.append(line)
             
@@ -1149,10 +1140,11 @@ class Viewer():
             for x, (color, radius) in enumerate(line):
                 if color == 128:
                     c = (128,128,128)
-                elif color < 128:
-                    c = (color,0,0)
+                elif color > 128:
+                    #red
+                    c = (int(color),255-int(color),255-int(color))
                 else:
-                    c = (0,0, color)
+                    c = (int(color),int(color), 255-int(color))
                 pygame.draw.rect(self.screen, c,
                      (x*self.gridsize, y*self.gridsize, self.gridsize, self.gridsize))
                     
@@ -1170,6 +1162,67 @@ class Viewer():
         y = min(self.maxy, py // self.gridsize)
         return x, y
         
+    def update_cells(self, seconds):
+        """change color value of cells if player is nearby, paint raindrop"""
+        # ------ update cells -----
+        # ---- back to neutral ----
+        for y in range(self.maxy+1):
+            for x in range(self.maxx+1):
+                cvalue = self.cells[y][x][0]
+                if cvalue == 0 or cvalue == 255 or cvalue == 128:
+                    continue
+                if cvalue < 128:
+                    sign = 1
+                else:
+                    sign = -1
+                self.cells[y][x][0] += sign * seconds * self.convert_rate_back
+                
+                
+        
+        # ----- converting by player -----
+        for p in self.playergroup:
+            ix, iy = self.pos_to_grid(p.pos)
+            affected = []
+            for y in range(self.maxy+1):
+                for x in range(self.maxx+1):
+                    cellvector = pygame.math.Vector2(self.gridsize//2 + x*self.gridsize, -self.gridsize//2-y*self.gridsize)
+                    distance = p.pos - cellvector
+                    if distance.length() < self.influence_radius:
+                        affected.append((x,y))
+            #print("affected:", affected)
+            for (x,y) in affected:
+                cvalue = self.cells[y][x][0]
+                if p.side == 1:
+                    if cvalue == 255:
+                        continue
+                    sign = 1
+                    r=255
+                    rd=10
+                    b=0
+                    bd=0
+                elif p.side == 2:
+                    if cvalue == 0:
+                        continue
+                    sign = -1
+                    r=0
+                    rd=0
+                    b=255
+                    bd=10
+                else:
+                    sign = 0
+                self.cells[y][x][0] += sign * seconds * self.convert_rate
+                # color sanity check
+                self.cells[y][x][0] = min(255, self.cells[y][x][0])
+                self.cells[y][x][0] = max(0, self.cells[y][x][0])
+                if random.random() < 0.1:
+                    Explosion(posvector=pygame.math.Vector2(self.gridsize//2 + x * self.gridsize,
+                          -self.gridsize//2-y*self.gridsize), shape="ring", minsparks=1, maxsparks=1, 
+                          minspeed=10, maxspeed = 55, red=r, red_delta=rd, green=128, green_delta=32, blue=b, blue_delta=bd)
+                    
+                    
+                    
+               
+          
     
     def run(self):
         """The mainloop"""
@@ -1268,106 +1321,38 @@ class Viewer():
            
             # ------ joystick handler -------
             for number, j in enumerate(self.joysticks):
-                if number == 0:
-                    player = self.cannon1
-                else:
-                    continue
-                x = j.get_axis(2)
-                y = j.get_axis(1)
-                if y > 0.2:
-                    player.forward(-1)
-                if y < -0.8:
-                    player.forward(15)
-                elif y < -0.5:
-                    player.forward(10)
-                elif y < -0.2:
-                    player.forward(5)
-                if x > 0.2:
-                    player.rotate(7)
-                if x < -0.2:
-                    player.rotate(-7)
+                pass
+                #if number == 0:
+                #    player = self.cannon1
+                #else:
+                #    continue
+                #x = j.get_axis(2)
+                #y = j.get_axis(1)
+                #if y > 0.2:
+                #    player.forward(-1)
+                #if y < -0.8:
+                #    player.forward(15)
+                #elif y < -0.5:
+                #    player.forward(10)
+                #elif y < -0.2:
+                #    player.forward(5)
+                #if x > 0.2:
+                #    player.rotate(7)
+                #if x < -0.2:
+                #    player.rotate(-7)
                 
                 buttons = j.get_numbuttons()
                 for b in range(buttons):
                     pushed = j.get_button( b )
-                    if b == 0 and pushed:
-                        player.fire()
-                    if b == 1 and pushed:
-                        t = random.choice((self.cannon3, self.cannon2))
-                        player.launch(t)
+                    #if b == 0 and pushed:
+                    #    player.fire()
+                    #if b == 1 and pushed:
+                    #    t = random.choice((self.cannon3, self.cannon2))
+                    #    player.launch(t)
                         #if b == 5 and pushed:
                             #player.strafe_right()                
-                
-            # ---- tower launch rocket ----
-            for t in self.towergroup:
-                if random.random() < 0.01 :   # 1% chance, 30x pro sec
-                    victim = random.choice((self.player2, self.castle2))
-                    Rocket(pos=pygame.math.Vector2(t.pos.x, t.pos.y),
-                           boss=t, target=victim, color=(3,3,3))
-              
-            # =========== delete everything on screen ==============
-            self.screen.blit(self.background, (0, 0))
             
-
-            #---- draw vertical border ------
-            ##pygame.draw.line(self.screen, (255, 255, random.randint(200,255)), (Viewer.border_x, 0), (Viewer.border_x, Viewer.height), 5)
-            # ----- draw horizontal border 
-            ##pygame.draw.line(self.screen, (255, 255, random.randint(200,255)), (0, -Viewer.border_y), (Viewer.width, -Viewer.border_y),5)         
-            
-            self.paint_cells()
-            self.draw_grid()
-            
-            # ------ update cells -----
-            for y, line in enumerate(self.cells):
-                for x, (color, radius) in enumerate(line):
-                    if color  == 0 or color == 255:
-                        continue
-                    cellvector = pygame.math.Vector2(x*self.gridsize+self.gridsize//2, -y*self.gridsize-self.gridsize//2)
-                    for p in self.playergroup:
-                        distance = p.pos - cellvector
-                        if distance.length() < self.influence_radius:
-                            #print("blubb", x, y, radius, color)
-                            radius += 1
-                            if radius > 70:
-                                radius = 1
-                                if p.number == 0:
-                                    delta = -1
-                                elif p.number == 1:
-                                    delta = 1
-                                else:
-                                    delta = 0
-                                color += delta * self.convert_rate
-                                color = min(255, color)
-                                color = max(0, color)
-                                if color == 0 or color == 255:
-                                    radius = 0
-                                self.cells[y][x][0] = color
-                            self.cells[y][x][1] = radius
-                            pygame.draw.circle(self.screen, (random.randint(128,255), random.randint(128,255), random.randint(128,255)),
-                                (x*self.gridsize+self.gridsize//2, y*self.gridsize+self.gridsize//2), radius+1, 1)
-                
-                            break
-                    else:
-                        self.cells[y][x][1] = 0
-              
-            
-            #--- trails for rockets ----
-            for r in self.rocketgroup:
-                if len(r.trail) > 1:
-                    for rank, (x,y) in enumerate(r.trail):
-                        if rank > 0:
-                            pygame.draw.line(self.screen, r.color, 
-                                        (x,y), (old[0], old [1]), (rank // 10))
-                        old = (x,y)
-            
-            ##self.paint_world()
-                       
-            # write text below sprites (fps, sparks)
-            write(self.screen, "FPS: {:8.3}".format(
-                self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(200,200,200))
-            write(self.screen, "Sparks: " + str(minimum_sparks), x=300, y=10, color=(200,200,200))
-            write(self.screen, str(len(self.bulletgroup)), x=Viewer.width-100, y=Viewer.height-30, color=(200,200,200))
-            # ----- collision detection between player and bullets---
+             # ----- collision detection between player and bullets---
             for p in self.playergroup:
                 crashgroup=pygame.sprite.spritecollide(p,
                            self.bulletgroup, False, 
@@ -1404,15 +1389,9 @@ class Viewer():
                         if select_sound == 4:
                             Viewer.sounds["explosion_rocket4"].play()
                         o.kill()
-                        p.lives -= 1
+                        p.hitpoints -= 1
                         
-                        if p.number == 0:
-                            Viewer.border_x += 5
-                            self.update_border()
-                        if p.number == 1:
-                            Viewer.border_x -= 5
-                            self.update_border()
-
+                        
                         
                 #... between rocket and rocket?
                  
@@ -1441,20 +1420,55 @@ class Viewer():
                             r1.kill()
                             r2.kill()      
               
-            #---- collision between player and PowerUp? ----
+           
             
-            for p in self.playergroup:
-                crashgroup=pygame.sprite.spritecollide(p,
-                           self.powerupgroup, False, 
-                           pygame.sprite.collide_mask)
-                for o in crashgroup:
-                    o.kill()
-                    p.lives += 1
+            # ---- tower launch rocket ----
+            for t in self.towergroup:
+                if random.random() < 0.01 :   # 1% chance, 30x pro sec
+                    victim = random.choice((self.player2, self.castle2))
+                    Rocket(pos=pygame.math.Vector2(t.pos.x, t.pos.y),
+                           boss=t, target=victim, color=(3,3,3))
+              
+                
+            # =========== delete everything on screen ==============
+            self.screen.blit(self.background, (0, 0))
             
+
+            #---- draw vertical border ------
+            ##pygame.draw.line(self.screen, (255, 255, random.randint(200,255)), (Viewer.border_x, 0), (Viewer.border_x, Viewer.height), 5)
+            # ----- draw horizontal border 
+            ##pygame.draw.line(self.screen, (255, 255, random.randint(200,255)), (0, -Viewer.border_y), (Viewer.width, -Viewer.border_y),5)         
+            
+            self.paint_cells()
+            self.draw_grid()
+            
+          
+           
+            
+            #--- trails for rockets ----
+            for r in self.rocketgroup:
+                if len(r.trail) > 1:
+                    for rank, (x,y) in enumerate(r.trail):
+                        if rank > 0:
+                            pygame.draw.line(self.screen, r.color, 
+                                        (x,y), (old[0], old [1]), (rank // 10))
+                        old = (x,y)
+            
+            ##self.paint_world()
+                       
+            # write text below sprites (fps, sparks)
+            write(self.screen, "FPS: {:8.3}".format(
+                self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(200,200,200))
+            redcells = len([c for c in self.cells if c[0]==0])
+            bluecells = len([c for c in self.cells if c[0]==255])
+            write(self.screen, "player1: {} cells vs. player2: {} cells".format(redcells, bluecells) , x=300, y=10, color=(255,255,255))
+            #write(self.screen, str(len(self.bulletgroup)), x=Viewer.width-100, y=Viewer.height-30, color=(200,200,200))
+           
        
                    
             # ================ UPDATE all sprites =====================
             self.allgroup.update(seconds)
+            self.update_cells(seconds)
 
             # ----------- clear, draw , update, flip -----------------
             self.allgroup.draw(self.screen)
