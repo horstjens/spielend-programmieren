@@ -118,6 +118,8 @@ class VectorSprite(pygame.sprite.Sprite):
             self._layer = 4
         else:
             self._layer = self.layer
+        if "side" not in kwargs:
+            self.side = 0 # 1 for player1, 2 for player2
         if "static" not in kwargs:
             self.static = False
         if "selected" not in kwargs:
@@ -616,8 +618,16 @@ class Hitpointbar(VectorSprite):
          percent = boss.hitpoints / boss.hitpointsfull
          #print(percent, boss.hitpoints, boss.hitpointsfull)
          w2 = int(width * percent)
-         pygame.draw.rect(self.image,(0,0,200), (1,1,w2,8)) 
-         pygame.draw.rect(self.image, (50,50,255), (0,0,width,10),1)
+         # moving inside filling
+         if boss.side == 1:
+             c = (200,0,0)
+         elif boss.side == 2:
+             c = (0,0,200)
+         else:
+             c = (200,200,200)
+         pygame.draw.rect(self.image,c, (1,1,w2,8)) 
+         # static outside border
+         pygame.draw.rect(self.image, (200,200,200), (0,0,width,10),1)
          self.image.set_colorkey((0,0,0))
          self.image.convert_alpha()
          self.rect= self.image.get_rect()
@@ -868,7 +878,7 @@ class Viewer():
         VectorSprite.groups = self.allgroup
         Flytext.groups = self.allgroup, self.flytextgroup
         
-        Cannon.groups = self.allgroup, self.playergroup
+        #Cannon.groups = self.allgroup, self.playergroup
         
         Bullet.groups = self.allgroup, self.bulletgroup
         Rocket.groups = self.allgroup, self.rocketgroup, self.targetgroup
@@ -886,15 +896,17 @@ class Viewer():
            depending on screen resolution and gridsize"""
         # VectorSprite.numbers[0]
         self.player1 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize,
-                              -self.gridsize//2-self.gridsize), lookleft=False)
+                              -self.gridsize//2-self.gridsize), lookleft=False,
+                              side=1)
         # VectorSprite.numbers[1]
         self.player2 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize*(self.maxx-1),
-                                                      -self.gridsize//2 - self.gridsize*(self.maxy-1)), angle = 0, lookleft=True)
+                              -self.gridsize//2 - self.gridsize*(self.maxy-1)), angle = 0, lookleft=True,
+                              side=2)
         # VectorSprite.numbers[2]                      
-        self.castle1 = Castle(pos=pygame.math.Vector2(self.gridsize//2, -self.gridsize//2), bossnumber = self.player1.number)
+        self.castle1 = Castle(pos=pygame.math.Vector2(self.gridsize//2, -self.gridsize//2), bossnumber = self.player1.number, side=1)
         # VectorSprite.numbers[3]
         self.castle2 = Castle(pos=pygame.math.Vector2(self.gridsize//2 + self.gridsize* self.maxx,
-                                                      -self.gridsize//2-self.gridsize*self.maxy), bossnumber = self.player2.number)
+                                                      -self.gridsize//2-self.gridsize*self.maxy), bossnumber = self.player2.number, side=2)
         
         self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
                           move=pygame.math.Vector2(0,30),
