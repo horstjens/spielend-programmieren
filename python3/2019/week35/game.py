@@ -5,8 +5,8 @@ contact: see http://spielend-programmieren.at/de:kontakt
 license: gpl, see http://www.gnu.org/licenses/gpl-3.0.de.html
 download: https://github.com/horstjens/catapults3d
 idea: python3/pygame 3d vector rts game
-
 """
+
 import pygame
 import random
 import os
@@ -334,6 +334,11 @@ class Wolf(VectorSprite):
 
 class Player(VectorSprite):
     
+    def _overwrite_parameters(self):
+        Hitpointbar(bossnumber=self.number, kill_with_boss = True,
+                    sticky_with_boss = True, ydistance=50, width=72,
+                    always_calculate_image = True)
+    
     def create_image(self):
         self.image=Viewer.images["player"]
         self.image0 = self.image.copy()
@@ -535,25 +540,23 @@ class PowerUp(VectorSprite):
           self.image0 = self.image.copy()
  
  
-class Castle (VectorSprite):
-    
-    def _overwrite_parameters(self):
-        self._layer = 9
-        #self.kill_on_edge = False
-        #self.bounce_on_edge= True
-        #self.max_age = 10
-        self.color = (255, 255, 255)
-        
+class Castle(VectorSprite):
         
     def create_image(self):
-        self.image = pygame.Surface((10,10))
-        pygame.draw.circle(self.image, self.color, (5,5), 5)
-        self.image.set_colorkey((0,0,0))
-        self.image.convert_alpha()
-        self.rect= self.image.get_rect()
-        self.image0 = self.image.copy() 
- 
-class Rocket (VectorSprite):
+        self.image=Viewer.images["castle"]
+        self.image0 = self.image.copy()
+        self.rect = self.image.get_rect()
+        
+
+class Tower(VectorSprite):
+
+    def create_image(self):
+        self.image=Viewer.images["tower"]
+        self.image0 = self.image.copy()
+        self.rect = self.image.get_rect()
+
+    
+class Rocket(VectorSprite):
     
        def _overwrite_parameters(self):
           self._layer = 9
@@ -845,6 +848,8 @@ class Viewer():
             Viewer.images["cannon"] = pygame.image.load(os.path.join("data", "cannon.png"))
             Viewer.images["wolf"] = pygame.image.load(os.path.join("data", "wolf.png"))
             Viewer.images["player"] = pygame.image.load(os.path.join("data", "arch-mage.png"))
+            Viewer.images["castle"] = pygame.image.load(os.path.join("data", "keep-tile.png"))
+            Viewer.images["tower"] = pygame.image.load(os.path.join("data", "keep-convex-bl.png"))
             
             # --- scalieren ---
             #for name in Viewer.images:
@@ -865,6 +870,7 @@ class Viewer():
         self.powerupgroup = pygame.sprite.Group()
         self.guardiangroup = pygame.sprite.Group()
         self.castlegroup = pygame.sprite.Group()
+        self.towergroup = pygame.sprite.Group()
         self.bargroup = pygame.sprite.Group()
         self.wolfgroup = pygame.sprite.Group()
         VectorSprite.groups = self.allgroup
@@ -878,6 +884,7 @@ class Viewer():
         Castle.groups = self.allgroup, self.castlegroup
         Wolf.groups = self.allgroup, self.wolfgroup
         Hitpointbar.groups = self.allgroup, self.bargroup
+        Tower.groups = self.allgroup, self.towergroup
         
         #Catapult.groups = self.allgroup,
         #self.player1 =  Player(imagename="player1", warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2-100,-Viewer.height/2))
@@ -1122,10 +1129,10 @@ class Viewer():
         """draw self.gridsize=100 x 100? grid"""
         for y in range(0, Viewer.height, self.gridsize):
             pygame.draw.line(self.screen, (200,200,200),
-                (0,y), (Viewer.width,y))
+                (0,y+self.gridsize//2), (Viewer.width,y+self.gridsize//2))
         for x in range(0, Viewer.width, self.gridsize):
             pygame.draw.line(self.screen, (200,200,200),
-                (x, 0), (x, Viewer.height))
+                (x+self.gridsize//2, 0), (x+self.gridsize//2, Viewer.height))
         
     
     def calculate_grid(self):
@@ -1199,12 +1206,6 @@ class Viewer():
             self.playtime += seconds
             
             
-            
-            #kill bullet when fps < 20
-            
-            
-           
-            
             fps = self.clock.get_fps()
             if fps < 20:
                 '''for s in self.allgroup:
@@ -1219,13 +1220,7 @@ class Viewer():
             else:
                 fps_warnung = False
             
-            if zwischenvariable == 80:
-                if minimum_sparks <= 250:
-                    minimum_sparks += 10
-                    zwischenvariable = 0
-            else:
-                zwischenvariable += 1
-            
+         
             for p in self.playergroup:
                 p.move *= 0.99
             
@@ -1237,99 +1232,43 @@ class Viewer():
                 # ------- pressed and released key ------
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        #for s in self.allgroup:
-                            #if s.__class__.__name__ == "Spark":
-                                #s.kill()
-                            #if s.__class__.__name__ == "Bullet":
-                                #s.kill()
-                            #if s.__class__.__name__ == "Rocket":
-                                #s.kill()
+              
                         pygame.mixer.music.load(os.path.join("data", "menu_ogg.ogg"))
                         Viewer.menu_run(self)
                         #pygame.mixer.music.load(os.path.join("data", "8BitMetal.ogg"))
                         #pygame.mixer.music.play(loops=-1)
                     
-                    if event.key == pygame.K_RSHIFT:
-                        
-                        self.cannon1.launch()
-                        
-                    if event.key == pygame.K_LSHIFT:
-                        
-                        self.cannon2.launch()
+                    # ----- player 1------
+                    if event.key == pygame.K_a:
+                        self.player1.pos.x -= self.gridsize # left
+                    if event.key == pygame.K_d:
+                        self.player1.pos.x += self.gridsize # right
+                    if event.key == pygame.K_w:
+                        self.player1.pos.y += self.gridsize # up
+                    if event.key == pygame.K_s:
+                        self.player1.pos.y -= self.gridsize # down
                     
-                    if event.key == pygame.K_1:
-                        self.wolf1.hitpoints -= 1
-                    if event.key == pygame.K_2:
-                        self.wolf1.hitpoints += 1
+                    # --- player1 build tower -----
+                    if event.key == pygame.K_LCTRL:
+                        Tower(pos=pygame.math.Vector2(
+                              self.player1.pos.x, self.player1.pos.y))
                     
                     
+                    # ----- player 2------
+                    if event.key == pygame.K_LEFT:
+                        self.player2.pos.x -= self.gridsize # left
+                    if event.key == pygame.K_RIGHT:
+                        self.player2.pos.x += self.gridsize # right
+                    if event.key == pygame.K_UP:
+                        self.player2.pos.y += self.gridsize # up
+                    if event.key == pygame.K_DOWN:
+                        self.player2.pos.y -= self.gridsize # down
+                      
                       
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
             
-            # ----- wolf1 control ------
-            if pressed_keys[pygame.K_i]:
-                self.wolf1.move.y += 0.1
-                ## -- no move ? ---
-                #if self.wolf1.move.length() == 0:
-                #    self.wolf1.move = pygame.math.Vector2(0.1, 0)
-                #else:
-                #    self.wolf1.move *= 1.1 # 10% more speed
-            if pressed_keys[pygame.K_k]:
-                self.wolf1.move.y -= 0.1
-                #self.wolf1.move *= 0.9 # 10% less speed
-            if pressed_keys[pygame.K_l]:
-                self.wolf1.move.x += 0.1
-                #self.wolf1.move.rotate_ip(-1)
-            if pressed_keys[pygame.K_j]:
-                self.wolf1.move.x -= 0.1
-                #self.wolf1.move.rotate_ip(1)
-                
-            
-            # ------- movement keys for player1 -------
-            
-            if pressed_keys[pygame.K_LEFT]:
-                self.cannon1.rotate(5)
-            if pressed_keys[pygame.K_RIGHT]:
-                self.cannon1.rotate(-5)
-            if pressed_keys[pygame.K_UP]:
-                self.cannon1.forward(5)
-            if pressed_keys[pygame.K_DOWN]:
-                self.cannon1.forward(-5)
-            if pressed_keys[pygame.K_b]:
-                self.cannon1.move *= 0.8
-            if pressed_keys[pygame.K_n]:
-                self.cannon1.move *= 1.1
-                
-            # Player 2
-            
-            if pressed_keys[pygame.K_a]:
-                self.cannon2.rotate(5)
-            if pressed_keys[pygame.K_d]:
-                self.cannon2.rotate(-5)
-            if pressed_keys[pygame.K_w]:
-                self.cannon2.forward(5)
-            if pressed_keys[pygame.K_s]:
-                self.cannon2.forward(-5)
-              
-            #fire bullet for player one and two
-            if pressed_keys[pygame.K_RCTRL]:
-                self.cannon1.fire()
-            if pressed_keys[pygame.K_LCTRL]:
-                self.cannon2.fire()
-                                    
-            #---- minimal distance critical ? -----
-            dist = self.cannon1.pos - self.cannon2.pos
-            if dist.length() < 100:
-                self.cannon1.move = pygame.math.Vector2(0,0)
-                self.cannon2.move = pygame.math.Vector2(0,0)
-                r1 = pygame.math.Vector2(1,0)
-                self.cannon1.set_angle(-dist.angle_to(r1)+180)
-                self.cannon2.set_angle(-dist.angle_to(r1))
-                self.cannon2.move = -   dist
-                self.cannon1.move = dist
-                
-            
+  
             # ------ mouse handler ------
             left,middle,right = pygame.mouse.get_pressed()
             oldleft, oldmiddle, oldright = left, middle, right
@@ -1367,14 +1306,17 @@ class Viewer():
                         #if b == 5 and pushed:
                             #player.strafe_right()                
                 
-            
+            # ---- tower launch rocket ----
+            for t in self.towergroup:
+                if random.random() < 0.01 :   # 1% chance, 30x pro sec
+                    victim = random.choice((self.player2, self.castle2))
+                    Rocket(pos=pygame.math.Vector2(t.pos.x, t.pos.y),
+                           boss=t, target=victim, color=(3,3,3))
               
             # =========== delete everything on screen ==============
             self.screen.blit(self.background, (0, 0))
             
-                         
-                
-            
+
             #---- draw vertical border ------
             ##pygame.draw.line(self.screen, (255, 255, random.randint(200,255)), (Viewer.border_x, 0), (Viewer.border_x, Viewer.height), 5)
             # ----- draw horizontal border 
