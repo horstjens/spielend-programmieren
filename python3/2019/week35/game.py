@@ -318,6 +318,21 @@ class VectorSprite(pygame.sprite.Sprite):
                 self.pos.y = 0
 
 
+class Soldier(VectorSprite):
+    
+     def _overwrite_parameters(self):
+        Hitpointbar(bossnumber=self.number, kill_with_boss = True,
+                    sticky_with_boss = True, ydistance=50, width=72,
+                    always_calculate_image = True)
+                    
+     def create_image(self):
+        self.image=Viewer.images["soldier"]
+        self.image0 = self.image.copy()
+        self.rect = self.image.get_rect()
+        
+
+    
+
 class Wolf(VectorSprite):
     
     def _overwrite_parameters(self):
@@ -855,7 +870,7 @@ class Viewer():
             Viewer.images["player"] = pygame.image.load(os.path.join("data", "arch-mage.png"))
             Viewer.images["castle"] = pygame.image.load(os.path.join("data", "keep-tile.png"))
             Viewer.images["tower"] = pygame.image.load(os.path.join("data", "keep-convex-bl.png"))
-            
+            Viewer.images["soldier"] = pygame.image.load(os.path.join("data", "scout-ranged-1.png"))
             # --- scalieren ---
             #for name in Viewer.images:
             #    if name == "bossrocket":
@@ -872,7 +887,7 @@ class Viewer():
         self.bulletgroup = pygame.sprite.Group()
         self.playergroup= pygame.sprite.Group()
         self.rocketgroup = pygame.sprite.Group()
-        
+        self.armygroup = pygame.sprite.Group()
         #self.powerupgroup = pygame.sprite.Group()
         #self.guardiangroup = pygame.sprite.Group()
         self.castlegroup = pygame.sprite.Group()
@@ -892,6 +907,7 @@ class Viewer():
         Player.groups = self.allgroup, self.playergroup, self.targetgroup,
         #PowerUp.groups = self.allgroup, self.powerupgroup
         #Guardian.groups = self.allgroup, self.guardiangroup
+        Soldier.groups = self.allgroup, self.targetgroup, self.armygroup
         Castle.groups = self.allgroup, self.castlegroup, self.targetgroup
         Wolf.groups = self.allgroup, self.wolfgroup
         Hitpointbar.groups = self.allgroup, self.bargroup
@@ -1354,6 +1370,22 @@ class Viewer():
                             Tower(side=1, pos=pygame.math.Vector2(
                                   self.player1.pos.x, self.player1.pos.y))
                     
+                    # --- player2 build tower -----
+                    if event.key == pygame.K_RCTRL:
+                        # ---- check if there is already a tower ----
+                        for t in self.towergroup:
+                            if t.pos==self.player2.pos:
+                                Flytext(pos=pygame.math.Vector2(self.player2.pos.x,
+                                                                self.player2.pos.y),
+                                        text="Da ist schon ein Tower, du Hirsch!",
+                                        color=(255,255,0), fontsize=22,
+                                        move=pygame.math.Vector2(0, 15),
+                                        max_age=2)
+                                break
+                        else:   
+                            Tower(side=2, pos=pygame.math.Vector2(
+                                  self.player2.pos.x, self.player2.pos.y))
+                    
                     
                     # ----- player 2------
                     dx, dy = 0, 0
@@ -1499,13 +1531,36 @@ class Viewer():
                             r2.kill()      
               
            
+            # ---- castle launch soldier ----
+            # --- castle1 ---
+            if random.random() < 0.007:
+                Soldier(side=1, target=self.castle2,
+                        pos=pygame.math.Vector2(self.castle1.pos.x, self.castle1.pos.y),
+                        move=pygame.math.Vector2(random.randint(10,50), -random.randint(10,50)),
+                        max_age = 120, bounce_on_edge = True)
+            # ---- castle2 launch soldier----
+            if random.random() < 0.007:
+                Soldier(side=2, target=self.castle1,
+                        pos=pygame.math.Vector2(self.castle2.pos.x, self.castle2.pos.y),
+                        move=pygame.math.Vector2(-random.randint(10,50), random.randint(10,50)),
+                        max_age = 120, bounce_on_edge = True)                        
+                        
+            # --- soldier shoots (rocket) bullet ----
+            for s in self.armygroup:
+                if random.random() < 0.05:
+                    targets = [t for t in self.targetgroup if t.side != s.side]
+                    victim = random.choice(targets)
+                    Rocket(boss=s, side=s.side, pos=pygame.math.Vector2(s.pos.x, s.pos.y),
+                           target=victim, color=(3,3,3))
+              
             
             # ---- tower launch rocket ----
             for t in self.towergroup:
                 if random.random() < 0.01 :   # 1% chance, 30x pro sec
-                    victim = random.choice((self.player2, self.castle2))
-                    Rocket(side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
-                           boss=t, target=victim, color=(3,3,3))
+                    targets = [o for o in self.targetgroup if o.side != t.side]
+                    victim = random.choice(targets)
+                    Rocket(boss= t, side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
+                           target=victim, color=(3,3,3))
               
                 
             # =========== delete everything on screen ==============
