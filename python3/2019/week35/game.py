@@ -660,6 +660,7 @@ class Ring(VectorSprite):
         self.image.convert_alpha()
         self.rect= self.image.get_rect()
         self.image0 = self.image.copy()  
+        self.rect.centerx, self.rect.centery = self.pos.x, self.pos.y
 
 class Explosion():
     """emits a lot of sparks, for Explosion or Player engine"""
@@ -1464,9 +1465,9 @@ class Viewer():
             for line in self.cells:
                 for (color, irrelevant_value) in line:
                     if color == 0:
-                        redcells += 1
-                    elif color == 255:
                         bluecells += 1
+                    elif color == 255:
+                        redcells += 1
             write(self.screen, "player1: {} cells vs. player2: {} cells".format(redcells, bluecells) , x=300, y=10, color=(255,255,255))
             #write(self.screen, str(len(self.bulletgroup)), x=Viewer.width-100, y=Viewer.height-30, color=(200,200,200))
            
