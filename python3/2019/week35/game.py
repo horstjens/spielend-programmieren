@@ -505,6 +505,12 @@ class Flytext(VectorSprite):
  
 class Castle(VectorSprite):
         
+    def _overwrite_parameters(self):
+        Hitpointbar(bossnumber=self.number, kill_with_boss = True,
+                    sticky_with_boss = True, ydistance=50, width=72,
+                    always_calculate_image = True)
+        
+    
     def create_image(self):
         self.image=Viewer.images["castle"]
         self.image0 = self.image.copy()
@@ -512,6 +518,11 @@ class Castle(VectorSprite):
         
 
 class Tower(VectorSprite):
+
+    def _overwrite_parameters(self):
+        Hitpointbar(bossnumber=self.number, kill_with_boss = True,
+                    sticky_with_boss = True, ydistance=50, width=72,
+                    always_calculate_image = True)
 
     def create_image(self):
         self.image=Viewer.images["tower"]
@@ -1296,7 +1307,7 @@ class Viewer():
                     
                     # --- player1 build tower -----
                     if event.key == pygame.K_LCTRL:
-                        Tower(pos=pygame.math.Vector2(
+                        Tower(side=1, pos=pygame.math.Vector2(
                               self.player1.pos.x, self.player1.pos.y))
                     
                     
@@ -1376,8 +1387,8 @@ class Viewer():
                            
                            
                 for o in crashgroup:
-                    if o.boss.number == p.number:
-                        continue
+                    if o.side == p.side:
+                        continue # friendly fire
                     else: 
                         Explosion(posvector=p.pos, minsparks=50, maxsparks=60)
                         select_sound = random.choice((1, 2, 3, 4))
@@ -1427,7 +1438,7 @@ class Viewer():
             for t in self.towergroup:
                 if random.random() < 0.01 :   # 1% chance, 30x pro sec
                     victim = random.choice((self.player2, self.castle2))
-                    Rocket(pos=pygame.math.Vector2(t.pos.x, t.pos.y),
+                    Rocket(side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
                            boss=t, target=victim, color=(3,3,3))
               
                 
