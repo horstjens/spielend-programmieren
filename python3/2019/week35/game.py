@@ -506,6 +506,8 @@ class Flytext(VectorSprite):
 class Castle(VectorSprite):
         
     def _overwrite_parameters(self):
+        self.hitpoints = 1000
+        self.hitpointsfull = 1000
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
@@ -582,7 +584,10 @@ class Hitpointbar(VectorSprite):
           
           
      def create_image(self):
-         boss = VectorSprite.numbers[self.bossnumber]
+         try:
+             boss = VectorSprite.numbers[self.bossnumber]
+         except:
+             return
          width = self.width
          self.image = pygame.Surface((width,10)) # size of rect
          #pygame.draw.circle(self.image, self.color, (5,5), 5)
@@ -1265,6 +1270,13 @@ class Viewer():
         
         
         while running:
+            if self.player1.hitpoints <= 0 or self.castle1.hitpoints <= 0:
+                print("Victory for  player 2")
+                running = False
+            if self.player2.hitpoints <= 0 or self.castle2.hitpoints <= 0:
+                print("Victory for player 1")
+                running = False
+                
             #pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
             #                     self.player1.hitpoints, self.player2.hitpoints))
             
@@ -1296,30 +1308,84 @@ class Viewer():
                         #pygame.mixer.music.play(loops=-1)
                     
                     # ----- player 1------
+                    dx, dy = 0, 0
                     if event.key == pygame.K_a:
-                        self.player1.pos.x -= self.gridsize # left
+                        dx = -self.gridsize
+                        #self.player1.pos.x -= self.gridsize # left
                     if event.key == pygame.K_d:
-                        self.player1.pos.x += self.gridsize # right
+                        dx = self.gridsize
+                        #self.player1.pos.x += self.gridsize # right
                     if event.key == pygame.K_w:
-                        self.player1.pos.y += self.gridsize # up
+                        dy = self.gridsize
+                        #self.player1.pos.y += self.gridsize # up
                     if event.key == pygame.K_s:
-                        self.player1.pos.y -= self.gridsize # down
+                        dy = -self.gridsize
+                        #self.player1.pos.y -= self.gridsize # down
+                    # --- check for tower ---
+                    for t in self.towergroup:
+                        if t.side == self.player1.side:
+                            continue
+                        if t.pos.x == self.player1.pos.x + dx:
+                            if t.pos.y == self.player1.pos.y + dy:
+                                Flytext(pos=pygame.math.Vector2(
+                                        self.player1.pos.x,
+                                        self.player1.pos.y),
+                                        text="path blocked by enemy tower",
+                                        move=pygame.math.Vector2(0,5),
+                                        max_age=2)
+                                break
+                    else:
+                        self.player1.pos.x += dx
+                        self.player1.pos.y += dy
                     
                     # --- player1 build tower -----
                     if event.key == pygame.K_LCTRL:
-                        Tower(side=1, pos=pygame.math.Vector2(
-                              self.player1.pos.x, self.player1.pos.y))
+                        # ---- check if there is already a tower ----
+                        for t in self.towergroup:
+                            if t.pos==self.player1.pos:
+                                Flytext(pos=pygame.math.Vector2(self.player1.pos.x,
+                                                                self.player1.pos.y),
+                                        text="Da ist schon ein Tower, du Hirsch!",
+                                        color=(255,255,0), fontsize=22,
+                                        move=pygame.math.Vector2(0, 15),
+                                        max_age=2)
+                                break
+                        else:   
+                            Tower(side=1, pos=pygame.math.Vector2(
+                                  self.player1.pos.x, self.player1.pos.y))
                     
                     
                     # ----- player 2------
+                    dx, dy = 0, 0
                     if event.key == pygame.K_LEFT:
-                        self.player2.pos.x -= self.gridsize # left
+                        dx = -self.gridsize
+                        #self.player1.pos.x -= self.gridsize # left
                     if event.key == pygame.K_RIGHT:
-                        self.player2.pos.x += self.gridsize # right
+                        dx = self.gridsize
+                        #self.player1.pos.x += self.gridsize # right
                     if event.key == pygame.K_UP:
-                        self.player2.pos.y += self.gridsize # up
+                        dy = self.gridsize
+                        #self.player1.pos.y += self.gridsize # up
                     if event.key == pygame.K_DOWN:
-                        self.player2.pos.y -= self.gridsize # down
+                        dy = -self.gridsize
+                        #self.player1.pos.y -= self.gridsize # down
+                    # --- check for tower ---
+                    for t in self.towergroup:
+                        if t.side == self.player2.side:
+                            continue
+                        if t.pos.x == self.player2.pos.x + dx:
+                            if t.pos.y == self.player2.pos.y + dy:
+                                Flytext(pos=pygame.math.Vector2(
+                                        self.player2.pos.x,
+                                        self.player2.pos.y),
+                                        text="path blocked by enemy tower",
+                                        move=pygame.math.Vector2(0,5),
+                                        max_age=2)
+                                break
+                    else:
+                        self.player2.pos.x += dx
+                        self.player2.pos.y += dy
+                   
                       
                       
             # ------------ pressed keys ------
@@ -1380,7 +1446,7 @@ class Viewer():
                       o.kill()
                       
             #---- collision with rocket? ----          
-            for p in self.playergroup:
+            for p in self.targetgroup:
                 crashgroup=pygame.sprite.spritecollide(p,
                            self.rocketgroup, False, 
                            pygame.sprite.collide_mask)
