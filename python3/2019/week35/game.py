@@ -145,7 +145,7 @@ class VectorSprite(pygame.sprite.Sprite):
         if "mass" not in kwargs:
             self.mass = 10
         if "damage" not in kwargs:
-            self.damage = 10
+            self.damage = 1
         if "bounce_on_edge" not in kwargs:
             self.bounce_on_edge = False
         if "kill_on_edge" not in kwargs:
@@ -198,7 +198,7 @@ class VectorSprite(pygame.sprite.Sprite):
             self.always_calculate_image = False
 
     def kill(self):
-        if self.number in self.numbers:
+        if self.number in VectorSprite.numbers:
            del VectorSprite.numbers[self.number] # remove Sprite from numbers dict
         pygame.sprite.Sprite.kill(self)
     
@@ -321,9 +321,16 @@ class VectorSprite(pygame.sprite.Sprite):
 class Soldier(VectorSprite):
     
      def _overwrite_parameters(self):
+        self._layer = 5
+        self.hitpoints = 50
+        self.hitpointsfull = 50
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
+        if self.side == 2:
+            self.color = (0,0,255)
+        elif self.side == 1:
+            self.color = (255,0,0)
                     
      def create_image(self):
         self.image=Viewer.images["soldier"]
@@ -352,6 +359,7 @@ class Wolf(VectorSprite):
 class Player(VectorSprite):
     
     def _overwrite_parameters(self):
+        self._layer = 6
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
@@ -366,143 +374,6 @@ class Player(VectorSprite):
         # self.image0.set_colorkey((0,0,0))
         # self.image0.convert_alpha()
         self.rect = self.image.get_rect()
-
-class Cannon(VectorSprite):
-    
-    def _overwrite_parameters(self):
-        self.kill_on_edge = False
-        self.survive_north = True
-        #self.pos.y = -Viewer.height //2
-        #self.pos.x = Viewer.width //2
-       
-        #self.imagenames = ["cannon"]
-        self.speed  = 7
-        self.turnspeed = 0.5
-        self.ready_to_launch = 0
-                
-    def wallbounce(self):
-        # ---- bounce / kill on screen edge ----
-        # ------- left edge ----
-        if self.pos.x < self.left_border:
-            if self.kill_on_edge:
-                self.kill()
-            elif self.bounce_on_edge:
-                self.pos.x = self.left_border
-                self.move.x *= -1
-            elif self.warp_on_edge:
-                self.pos.x = self.right_border 
-        # -------- upper edge -----
-        if self.pos.y  > self.upper_border:
-            if self.kill_on_edge and not self.survive_north:
-                self.kill()
-            elif self.bounce_on_edge:
-                self.pos.y = self.upper_border
-                self.move.y *= -1
-            elif self.warp_on_edge:
-                self.pos.y = self.upper_border
-        # -------- right edge -----                
-        if self.pos.x  > self.right_border:
-            if self.kill_on_edge:
-                self.kill()
-            elif self.bounce_on_edge:
-                self.pos.x = self.right_border
-                self.move.x *= -1
-            elif self.warp_on_edge:
-                self.pos.x = self.left_border
-        # --------- lower edge ------------
-        if self.pos.y   < self.lower_border:
-            if self.kill_on_edge:
-                self.hitpoints = 0
-                self.kill()
-            elif self.bounce_on_edge:
-                self.pos.y =self.lower_border
-                self.move.y *= -1
-            elif self.warp_on_edge:
-                self.pos.y = 0
-            
-    def fire(self):
-        v = pygame.math.Vector2(200,0)
-        v.rotate_ip(self.angle)
-        Bullet(boss=self, pos=pygame.math.Vector2(self.pos.x, self.pos.y), angle=self.angle,
-                    move = v)
-        if Viewer.shotgun == 2:
-            if self.number == 0:
-                print("Fired Shotgun")
-                for i in range(5):
-                    v = pygame.math.Vector2(random.randint (80,120),0)
-                    a = random.randint(-10,10)
-                    v.rotate_ip(self.angle+ a)
-                    Bullet(boss=self, max_age=10, mass=20000, pos=pygame.math.Vector2(self.pos.x, self.pos.y), angle=self.angle+a,
-                        move = v)
-                  
-        #---- recoil ----
-        #v= pygame.math.Vector2(10,0)
-        #v.rotate_ip(self.angle + 180)
-        #self.move += v
-     
-    def launch(self):
-        if self.age < self.ready_to_launch:
-            return # not yet ready
-        self.ready_to_launch = self.age + 0.1
-        v = pygame.math.Vector2(50,0)
-        v.rotate_ip(self.angle)
-        # chose an enemy wisely
-        e = []
-        for sprite in VectorSprite.numbers.values():
-             if sprite.number == self.number:
-                 continue
-             if sprite.bossnumber == self.number:
-                 continue
-             if sprite.__class__.__name__ == "Cannon":
-                 e.append(sprite)
-             if sprite.__class__.__name__ == "Rocket":
-                 e.append(sprite)
-             if sprite.__class__.__name__ == "Castle":
-                 e.append(sprite)
-        
-        if Viewer.double_rocket == 1:
-            for i in range(2):
-                enemy = random.choice(e)     
-                Rocket(boss=self, target=enemy, max_age=30, mass=50, pos=pygame.math.Vector2(self.pos.x, self.pos.y), angle=self.angle,
-                    move = v+ self.move)
-        else:
-            enemy = random.choice(e)     
-            Rocket(boss=self, target=enemy, max_age=30, mass=50, pos=pygame.math.Vector2(self.pos.x, self.pos.y), angle=self.angle,
-                    move = v+ self.move)          
-               
-    def create_image(self):
-        self.image=Viewer.images["cannon"]
-        
-        self.image0 = self.image.copy()
-       # self.image0.set_colorkey((0,0,0))
-       # self.image0.convert_alpha()
-        self.rect = self.image.get_rect()
-
-    def kill(self):
-        #Explosion(posvector=self.pos, red=200, red_delta=25, minsparks=50, maxsparks=60, maxlifetime=7)
-        VectorSprite.kill(self)
-   
-   
-    def update(self,seconds):
-        VectorSprite.update(self,seconds)
-        # - - - - - - go to mouse cursor ------ #
-        target = mouseVector()
-        dist =target - self.pos
-        try:
-            dist.normalize_ip() #schrupmft ihn zur länge 1
-        except:
-            print("i could not normalize", dist)
-            return
-        dist *= self.speed  
-        rightvector = pygame.math.Vector2(1,0)
-        angle = -dist.angle_to(rightvector)
-        #print(angle)
-        #if self.angle == round(angle, 0):
-        if self.selected:
-            self.move = dist
-            self.set_angle(angle)
-            pygame.draw.rect(self.image, (0,200,0), (0,0,self.rect.width, self.rect.height),1)
-
 
 
 class Flytext(VectorSprite):
@@ -523,6 +394,7 @@ class Castle(VectorSprite):
     def _overwrite_parameters(self):
         self.hitpoints = 1000
         self.hitpointsfull = 1000
+        self.max_army = 4
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
@@ -540,6 +412,10 @@ class Tower(VectorSprite):
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
+        if self.side == 2:
+            self.color = (0,0,255)
+        elif self.side == 1:
+            self.color = (255,0,0)
 
     def create_image(self):
         self.image=Viewer.images["tower"]
@@ -701,9 +577,9 @@ class Explosion():
                  minsparks=5, maxsparks=20, shape="spark"):
         for s in range(random.randint(minsparks,maxsparks)):
             v = pygame.math.Vector2(1,0) # vector aiming right (0°)
-            a = random.randint(minangle,maxangle)
+            a = random.uniform(minangle,maxangle)
             v.rotate_ip(a)
-            speed = random.randint(minspeed, maxspeed)
+            speed = random.uniform(minspeed, maxspeed)
             duration = random.random() * maxlifetime # in seconds
             red   = randomize_color(red, red_delta)
             green = randomize_color(green, green_delta)
@@ -888,6 +764,7 @@ class Viewer():
         self.playergroup= pygame.sprite.Group()
         self.rocketgroup = pygame.sprite.Group()
         self.armygroup = pygame.sprite.Group()
+        self.movementblockgroup = pygame.sprite.Group()
         #self.powerupgroup = pygame.sprite.Group()
         #self.guardiangroup = pygame.sprite.Group()
         self.castlegroup = pygame.sprite.Group()
@@ -903,15 +780,15 @@ class Viewer():
         #Cannon.groups = self.allgroup, self.playergroup
         
         Bullet.groups = self.allgroup, self.bulletgroup
-        Rocket.groups = self.allgroup, self.rocketgroup, self.targetgroup
-        Player.groups = self.allgroup, self.playergroup, self.targetgroup,
+        Rocket.groups = self.allgroup, self.rocketgroup #, self.targetgroup
+        Player.groups = self.allgroup, self.playergroup, self.movementblockgroup, self.targetgroup,
         #PowerUp.groups = self.allgroup, self.powerupgroup
         #Guardian.groups = self.allgroup, self.guardiangroup
-        Soldier.groups = self.allgroup, self.targetgroup, self.armygroup
-        Castle.groups = self.allgroup, self.castlegroup, self.targetgroup
-        Wolf.groups = self.allgroup, self.wolfgroup
+        Soldier.groups = self.allgroup, self.armygroup, self.targetgroup, 
+        Castle.groups = self.allgroup, self.castlegroup, self.movementblockgroup, self.targetgroup
+        Wolf.groups = self.allgroup, self.wolfgroup, self.targetgroup
         Hitpointbar.groups = self.allgroup, self.bargroup
-        Tower.groups = self.allgroup, self.towergroup, self.targetgroup
+        Tower.groups = self.allgroup, self.towergroup, self.movementblockgroup, self.targetgroup
     
     
     def place_sprites(self):    
@@ -920,11 +797,11 @@ class Viewer():
         # VectorSprite.numbers[0]
         self.player1 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize,
                               -self.gridsize//2-self.gridsize), lookleft=False,
-                              side=1)
+                              side=1, gold=0, gold_per_grid = 1.0)
         # VectorSprite.numbers[1]
         self.player2 = Player(pos = pygame.math.Vector2(self.gridsize//2+self.gridsize*(self.maxx-1),
                               -self.gridsize//2 - self.gridsize*(self.maxy-1)), angle = 0, lookleft=True,
-                              side=2)
+                              side=2, gold=0, gold_per_grid = 1.0)
         # VectorSprite.numbers[2]                      
         self.castle1 = Castle(pos=pygame.math.Vector2(self.gridsize//2, -self.gridsize//2), bossnumber = self.player1.number, side=1)
         # VectorSprite.numbers[3]
@@ -1323,103 +1200,74 @@ class Viewer():
                         #pygame.mixer.music.load(os.path.join("data", "8BitMetal.ogg"))
                         #pygame.mixer.music.play(loops=-1)
                     
+                    
+                    # ------======== MOVEMENT ==========--------
                     # ----- player 1------
-                    dx, dy = 0, 0
+                    dx1, dy1 = 0, 0
                     if event.key == pygame.K_a:
-                        dx = -self.gridsize
+                        dx1 = -self.gridsize
                         #self.player1.pos.x -= self.gridsize # left
                     if event.key == pygame.K_d:
-                        dx = self.gridsize
+                        dx1 = self.gridsize
                         #self.player1.pos.x += self.gridsize # right
                     if event.key == pygame.K_w:
-                        dy = self.gridsize
+                        dy1 = self.gridsize
                         #self.player1.pos.y += self.gridsize # up
                     if event.key == pygame.K_s:
-                        dy = -self.gridsize
+                        dy1 = -self.gridsize
                         #self.player1.pos.y -= self.gridsize # down
-                    # --- check for tower ---
-                    for t in self.towergroup:
-                        if t.side == self.player1.side:
-                            continue
-                        if t.pos.x == self.player1.pos.x + dx:
-                            if t.pos.y == self.player1.pos.y + dy:
-                                Flytext(pos=pygame.math.Vector2(
-                                        self.player1.pos.x,
-                                        self.player1.pos.y),
-                                        text="path blocked by enemy tower",
-                                        move=pygame.math.Vector2(0,5),
-                                        max_age=2)
-                                break
-                    else:
-                        self.player1.pos.x += dx
-                        self.player1.pos.y += dy
-                    
-                    # --- player1 build tower -----
-                    if event.key == pygame.K_LCTRL:
-                        # ---- check if there is already a tower ----
-                        for t in self.towergroup:
-                            if t.pos==self.player1.pos:
-                                Flytext(pos=pygame.math.Vector2(self.player1.pos.x,
-                                                                self.player1.pos.y),
-                                        text="Da ist schon ein Tower, du Hirsch!",
-                                        color=(255,255,0), fontsize=22,
-                                        move=pygame.math.Vector2(0, 15),
-                                        max_age=2)
-                                break
-                        else:   
-                            Tower(side=1, pos=pygame.math.Vector2(
-                                  self.player1.pos.x, self.player1.pos.y))
-                    
-                    # --- player2 build tower -----
-                    if event.key == pygame.K_RCTRL:
-                        # ---- check if there is already a tower ----
-                        for t in self.towergroup:
-                            if t.pos==self.player2.pos:
-                                Flytext(pos=pygame.math.Vector2(self.player2.pos.x,
-                                                                self.player2.pos.y),
-                                        text="Da ist schon ein Tower, du Hirsch!",
-                                        color=(255,255,0), fontsize=22,
-                                        move=pygame.math.Vector2(0, 15),
-                                        max_age=2)
-                                break
-                        else:   
-                            Tower(side=2, pos=pygame.math.Vector2(
-                                  self.player2.pos.x, self.player2.pos.y))
-                    
-                    
                     # ----- player 2------
-                    dx, dy = 0, 0
+                    dx2, dy2 = 0, 0
                     if event.key == pygame.K_LEFT:
-                        dx = -self.gridsize
+                        dx2 = -self.gridsize
                         #self.player1.pos.x -= self.gridsize # left
                     if event.key == pygame.K_RIGHT:
-                        dx = self.gridsize
+                        dx2 = self.gridsize
                         #self.player1.pos.x += self.gridsize # right
                     if event.key == pygame.K_UP:
-                        dy = self.gridsize
+                        dy2 = self.gridsize
                         #self.player1.pos.y += self.gridsize # up
                     if event.key == pygame.K_DOWN:
-                        dy = -self.gridsize
+                        dy2 = -self.gridsize
                         #self.player1.pos.y -= self.gridsize # down
+
+                    # =======movement (both) ===========
                     # --- check for tower ---
-                    for t in self.towergroup:
-                        if t.side == self.player2.side:
-                            continue
-                        if t.pos.x == self.player2.pos.x + dx:
-                            if t.pos.y == self.player2.pos.y + dy:
-                                Flytext(pos=pygame.math.Vector2(
-                                        self.player2.pos.x,
-                                        self.player2.pos.y),
-                                        text="path blocked by enemy tower",
-                                        move=pygame.math.Vector2(0,5),
-                                        max_age=2)
+                    for player, dx, dy in [(self.player1, dx1, dy1), (self.player2, dx2, dy2)]:
+                        for t in self.movementblockgroup:   # tower and player
+                            if t.side == player.side:
+                                continue  # it's a friendly tower
+                            if t.pos.x == player.pos.x + dx and t.pos.y == player.pos.y +dy:
+                                Flytext(pos=pygame.math.Vector2(player.pos.x, player.pos.y),
+                                            text="path blocked by enemy {}".format(t.__class__.__name__),
+                                            move=pygame.math.Vector2(0,15), max_age=2)
                                 break
-                    else:
-                        self.player2.pos.x += dx
-                        self.player2.pos.y += dy
-                   
-                      
-                      
+                            if player.pos.x + dx < 0 or player.pos.x + dx > self.gridsize//2+self.gridsize * self.maxx  or player.pos.y + dy > 0 or player.pos.y + dy < -self.gridsize//2-self.gridsize * self.maxy:
+                                    Flytext(pos=pygame.math.Vector2(player.pos.x, player.pos.y),
+                                            text="end of game world reached",
+                                            move=pygame.math.Vector2(0,15), max_age=2)
+                                    break
+                        else:
+                            # no enemy tower was in the way
+                            player.pos.x += dx
+                            player.pos.y += dy
+                    
+                    # --- player build tower -----
+                    for player, key in [(self.player1, pygame.K_LCTRL), (self.player2, pygame.K_RCTRL)]:
+                        if event.key == key:
+                            # ---- check if there is already a tower ----
+                            for t in self.towergroup:
+                                if t.pos==player.pos:
+                                    Flytext(pos=pygame.math.Vector2(player.pos.x, player.pos.y),
+                                            text="Building not possible, There is already a building!",
+                                            color=(255,255,0), fontsize=22, max_age=2,
+                                            move=pygame.math.Vector2(0, 15))
+                                    break
+                            else:  
+                                # no tower was in the way 
+                                Tower(side=player.side, pos=pygame.math.Vector2(
+                                      player.pos.x, player.pos.y))
+
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
             
@@ -1462,7 +1310,8 @@ class Viewer():
                         #if b == 5 and pushed:
                             #player.strafe_right()                
             
-             # ----- collision detection between player and bullets---
+            # ========== COLLISION DETECTION =====================
+            # ----- collision detection between player and bullets---
             for p in self.playergroup:
                 crashgroup=pygame.sprite.spritecollide(p,
                            self.bulletgroup, False, 
@@ -1470,88 +1319,75 @@ class Viewer():
                 for o in crashgroup:
                       if o.boss.number == p.number:
                           continue
-                      
-                      
+        
                       elastic_collision(o, p)
-                      
-                      
                       o.kill()
                       
-            #---- collision with rocket? ----          
-            for p in self.targetgroup:
-                crashgroup=pygame.sprite.spritecollide(p,
-                           self.rocketgroup, False, 
-                           pygame.sprite.collide_mask)
+            #---- collision between rocket and target? ----          
+            for rocket in self.rocketgroup:
+                crashgroup=pygame.sprite.spritecollide(
+                               rocket, self.targetgroup, False, 
+                               pygame.sprite.collide_mask) # collide_rect collide_circle
                            
                            
-                for o in crashgroup:
-                    if o.side == p.side:
+                for target in crashgroup:
+                    if target.side == rocket.side:
                         continue # friendly fire
-                    else: 
-                        Explosion(posvector=p.pos, minsparks=50, maxsparks=60)
-                        select_sound = random.choice((1, 2, 3, 4))
-                        if select_sound == 1:
-                            Viewer.sounds["explosion_rocket1"].play()
-                        if select_sound == 2:
-                            Viewer.sounds["explosion_rocket2"].play()
-                        if select_sound == 3:
-                            Viewer.sounds["explosion_rocket3"].play()
-                        if select_sound == 4:
-                            Viewer.sounds["explosion_rocket4"].play()
-                        o.kill()
-                        p.hitpoints -= 1
+                    elif rocket.side == 2:
+                            r = 0
+                            rd = 0
+                            b = 225
+                            bd = 25
+                    elif rocket.side == 1:
+                            r = 225
+                            rd = 25
+                            b = 0
+                            bd = 0
+                    Explosion(posvector=rocket.pos, minsparks=5, maxsparks=15, minangle = rocket.angle+180+60, maxangle=rocket.angle+180-60,
+                              red=r, red_delta=rd, blue=b, blue_delta=bd, green=0, green_delta=0,
+                              maxlifetime = 2.5, minspeed=15.5, maxspeed=55.5)
+                    #select_sound = random.choice((1, 2, 3, 4))
+                    #if select_sound == 1:
+                    #    Viewer.sounds["explosion_rocket1"].play()
+                    #if select_sound == 2:
+                    #    Viewer.sounds["explosion_rocket2"].play()
+                    #if select_sound == 3:
+                    #    Viewer.sounds["explosion_rocket3"].play()
+                    #if select_sound == 4:
+                    #    Viewer.sounds["explosion_rocket4"].play()
+                    target.hitpoints -= rocket.damage
+                    rocket.kill()
+                    
+                    
                         
-                        
-                        
-                #... between rocket and rocket?
-                 
-                for r1 in self.rocketgroup:
-                    crashgroup=pygame.sprite.spritecollide(r1,
-                           self.rocketgroup, False, 
-                           pygame.sprite.collide_mask)
-                           
-                           
-                    for r2 in crashgroup:
-                        if r2.number <= r1.number:
-                            continue
-                        if r1.boss.number == r2.boss.number:
-                            continue
-                        else: 
-                            Explosion(posvector=r2.pos, minsparks=10, maxsparks=20)
-                            select_sound = random.choice((1, 2, 3, 4))
-                            if select_sound == 1:
-                                Viewer.sounds["explosion_rocket1"].play()
-                            if select_sound == 2:
-                                Viewer.sounds["explosion_rocket2"].play()
-                            if select_sound == 2:
-                                Viewer.sounds["explosion_rocket3"].play()
-                            if select_sound == 2:
-                                Viewer.sounds["explosion_rocket4"].play()
-                            r1.kill()
-                            r2.kill()      
+             
               
            
             # ---- castle launch soldier ----
             # --- castle1 ---
-            if random.random() < 0.007:
-                Soldier(side=1, target=self.castle2,
-                        pos=pygame.math.Vector2(self.castle1.pos.x, self.castle1.pos.y),
-                        move=pygame.math.Vector2(random.randint(10,50), -random.randint(10,50)),
+            for c in self.castlegroup:
+                armysize = len([s for s in self.armygroup if s.side == c.side])
+                if armysize >= c.max_army:
+                    continue
+                if random.random() < 0.01:
+                    if c.side == 1: 
+                        t = self.castle2
+                        m = pygame.math.Vector2(random.randint(10,50), -random.randint(10,50))
+                    elif c.side == 2:
+                        t = self.castle1
+                        m = pygame.math.Vector2(-random.randint(10,50), random.randint(10,50))
+                        
+                    Soldier(side=c.side, target=t, 
+                        pos=pygame.math.Vector2(c.pos.x, c.pos.y),move=m,
                         max_age = 120, bounce_on_edge = True)
-            # ---- castle2 launch soldier----
-            if random.random() < 0.007:
-                Soldier(side=2, target=self.castle1,
-                        pos=pygame.math.Vector2(self.castle2.pos.x, self.castle2.pos.y),
-                        move=pygame.math.Vector2(-random.randint(10,50), random.randint(10,50)),
-                        max_age = 120, bounce_on_edge = True)                        
                         
             # --- soldier shoots (rocket) bullet ----
             for s in self.armygroup:
-                if random.random() < 0.05:
+                if random.random() < 0.01:
                     targets = [t for t in self.targetgroup if t.side != s.side]
                     victim = random.choice(targets)
                     Rocket(boss=s, side=s.side, pos=pygame.math.Vector2(s.pos.x, s.pos.y),
-                           target=victim, color=(3,3,3))
+                           target=victim, color=s.color)
               
             
             # ---- tower launch rocket ----
@@ -1559,10 +1395,12 @@ class Viewer():
                 if random.random() < 0.01 :   # 1% chance, 30x pro sec
                     targets = [o for o in self.targetgroup if o.side != t.side]
                     victim = random.choice(targets)
+                    print("tower", t.number, t.side, "victim: ", victim.number, victim.side, victim.__class__.__name__)
                     Rocket(boss= t, side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
-                           target=victim, color=(3,3,3))
+                           target=victim, color=t.color)
               
-                
+           
+            
             # =========== delete everything on screen ==============
             self.screen.blit(self.background, (0, 0))
             
@@ -1583,8 +1421,8 @@ class Viewer():
                 if len(r.trail) > 1:
                     for rank, (x,y) in enumerate(r.trail):
                         if rank > 0:
-                            pygame.draw.line(self.screen, r.color, 
-                                        (x,y), (old[0], old [1]), (rank // 10))
+                            pygame.draw.line(self.screen, (150,150,150), 
+                                        (x,y), (old[0], old[1]), (rank // 10))
                         old = (x,y)
             
             ##self.paint_world()
@@ -1592,16 +1430,44 @@ class Viewer():
             # write text below sprites (fps, sparks)
             write(self.screen, "FPS: {:8.3}".format(
                 self.clock.get_fps() ), x=Viewer.width-200, y=10, color=(200,200,200))
+            
+            # ---------- cell counter ---------
             redcells = 0
             bluecells = 0
-            for line in self.cells:
-                for (color, irrelevant_value) in line:
+            #for y, line in enumerate(self.cells):
+            #for (color, age) in line:
+            for y in range(0, self.maxy+1):
+                for x in range(0, self.maxx+1):
+                    color, age = self.cells[y][x]
                     if color == 0:
                         bluecells += 1
                     elif color == 255:
                         redcells += 1
-            write(self.screen, "player1: {} cells vs. player2: {} cells".format(redcells, bluecells) , x=300, y=10, color=(255,255,255))
-            #write(self.screen, str(len(self.bulletgroup)), x=Viewer.width-100, y=Viewer.height-30, color=(200,200,200))
+                    # ----- cells generate gold -----   
+                    age += seconds
+                    if color == 255 and age > 10:
+                        age = 0
+                        self.player1.gold += self.player1.gold_per_grid
+                        Flytext(pos = pygame.math.Vector2(self.gridsize//2 + x*self.gridsize, -self.gridsize//2-y*self.gridsize),
+                                text="+{} $ for player1".format(self.player1.gold_per_grid), color=(255,255,0), 
+                                move=pygame.math.Vector2(0, 15), max_age =1)
+                    elif color == 0 and age > 10:
+                        age = 0
+                        self.player2.gold += self.player2.gold_per_grid
+                        Flytext(pos = pygame.math.Vector2(self.gridsize//2 + x*self.gridsize, -self.gridsize//2-y*self.gridsize),
+                                text="+{} $ for player2".format(self.player2.gold_per_grid), color=(255,255,0), 
+                                move=pygame.math.Vector2(0, 15), max_age =1)
+                    self.cells[y][x][1] = age
+                    
+            
+                        
+                        
+            write(self.screen, "player1: {} cells earn {} $/10 sec. Fortune: {} $".format(redcells, 
+                  self.player1.gold_per_grid, self.player1.gold), x=Viewer.width//2, y=10, color=(255, 255,0), fontsize = 20, center=True)
+            write(self.screen, "player2: {} cells earn {} $/10 sec. Fortune: {} $".format(bluecells, 
+                  self.player2.gold_per_grid, self.player2.gold), x=Viewer.width//2, y=35, color=(255, 255,0),fontsize = 20, center=True)
+             
+            
            
        
                    
