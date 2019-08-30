@@ -414,6 +414,8 @@ class Tower(VectorSprite):
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
         self.weaponrange = 300
+        if self.side == 0:
+            self.weaponrange = 200
         if self.side == 2:
             self.color = (0,0,255)
         elif self.side == 1:
@@ -421,6 +423,8 @@ class Tower(VectorSprite):
 
     def create_image(self):
         self.image=Viewer.images["tower"]
+        if self.side==0 :
+            self.image=Viewer.images["tower-neutral"]
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
 
@@ -765,12 +769,13 @@ class Viewer():
             Viewer.images["water1"] = pygame.image.load(os.path.join("data", "ocean-A09.png"))
             Viewer.images["forest2"] = pygame.image.load(os.path.join("data", "pine.png"))
             Viewer.images["swamp1"] = pygame.image.load(os.path.join("data", "reed.png"))
-            Viewer.images["swamp1"] = pygame.image.load(os.path.join("data", "reed2.png"))
+            Viewer.images["swamp2"] = pygame.image.load(os.path.join("data", "reed2.png"))
             Viewer.images["rocks1"] = pygame.image.load(os.path.join("data", "rocks.png"))
             Viewer.images["rocks2"] = pygame.image.load(os.path.join("data", "rocks2.png"))
             Viewer.images["windmill"] = pygame.image.load(os.path.join("data", "windmill-01.png"))
-            
-            
+            Viewer.images["desert1"] = pygame.image.load(os.path.join("data", "desert-tile.png"))
+            Viewer.images["desert2"] = pygame.image.load(os.path.join("data", "cloud-desert-tile.png"))
+            Viewer.images["tower-neutral"] = pygame.image.load(os.path.join("data", "human-city3.png"))
             
             
             
@@ -841,13 +846,23 @@ class Viewer():
         
         self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
                           move=pygame.math.Vector2(0,30),
-                          bounce_on_edge=True )
-        Tower(side=0, pos=pygame.math.Vector2(Viewer.width//2,
-            -Viewer.height//2))
-        for t in range(5):
-            x = random.randint(0, Viewer.width)
-            y = -random.randint(0, Viewer.height)
-            Tower(side=0, pos=pygame.math.Vector2(x,y))
+                          bounce_on_edge=True)
+        #Tower(side=0, pos=pygame.math.Vector2(Viewer.width//2,
+        #    -Viewer.height//2))
+        #for t in range(5):
+        #    x = random.randint(0, Viewer.width)
+        #    y = -random.randint(0, Viewer.height)
+        #    Tower(side=0, pos=pygame.math.Vector2(x,y))
+        
+        # ----- place a neutral tower on every rock terrain ----
+        for y in range(0, self.maxy+1):
+            for x in range(0, self.maxx+1):
+                terrain = self.cells[y][x][2]
+                #print(y,x, terrain)
+                if terrain == "rock":
+                    Tower(side=0, pos=pygame.math.Vector2(
+                          self.gridsize //2 + x * self.gridsize,
+                          -self.gridsize // 2 - y * self.gridsize))
                                               
         
     def menu_run(self):
@@ -1080,7 +1095,14 @@ class Viewer():
                 # ============== values in cell ================
                 # 0: color, 1: age, 2: terrain
                 # ==============================================
-                line.append([c,0, random.choice(("forest", "water", "farm", "rock","swamp"))])
+                # do not place a rock terrain in the fields close to the castle (left edge, right edge)
+                if x > 2 and x < (self.maxx-2):
+                    # rock allowed
+                    fields = [c,0, random.choice(("forest", "water", "farm", "rock","swamp","desert"))]    
+                else:
+                    # rock forbidden
+                    fields = [c,0, random.choice(("forest", "water", "farm","swamp","desert"))]
+                line.append(fields)
             self.cells.append(line)
         #--- new terrain ---
         self.calculate_terrain()
@@ -1123,6 +1145,9 @@ class Viewer():
                 what = self.cells[y][x][2]
                 # ("forest", "water", "farm", "rock","swamp")
                 #if what == "forest":
+                # --- force village at 3, 0
+                #if (x==3 and y==0):
+                #    what="village"
                 #--- force castle corners to be a farm
                 if (x==0 and y==0) or (x ==self.maxx and y==self.maxy):
                     what = "farm"
@@ -1333,10 +1358,19 @@ class Viewer():
                                             color=(255,255,0), fontsize=22, max_age=2,
                                             move=pygame.math.Vector2(0, 15))
                                     break
+                            
+     
                             else:  
-                                # no tower was in the way 
-                                Tower(side=player.side, pos=pygame.math.Vector2(
-                                      player.pos.x, player.pos.y))
+                                # --- enough money ? -----
+                                if player.gold < 10:
+                                    Flytext(pos=pygame.math.Vector2(player.pos.x, player.pos.y),
+                                            text="not enough gold you need 10$",
+                                            color=(255,255,0), fontsize=22, max_age=2,
+                                            move=pygame.math.Vector2(0, 15))
+                                else:    
+                                    # no tower was in the way 
+                                    Tower(side=player.side, pos=pygame.math.Vector2(
+                                          player.pos.x, player.pos.y))
 
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
@@ -1456,7 +1490,7 @@ class Viewer():
                         
             # --- soldier shoots (rocket)  ----
             for s in self.armygroup:
-                if random.random() < 0.01:
+                if random.random() < 0.1:
                     targets = [t for t in self.targetgroup if t.side != s.side]
                     targets2 = []
                     for ta in targets:
@@ -1472,7 +1506,7 @@ class Viewer():
             
             # ---- tower launch bullet ----
             for t in self.towergroup:
-                if random.random() < 1.00 :   # 100% chance, 30x pro sec
+                if random.random() < 0.15 :   # 100% chance, 30x pro sec
                     targets = [o for o in self.targetgroup if o.side != t.side]
                     targets2 = []
                     for ta in targets:
@@ -1485,7 +1519,7 @@ class Viewer():
                     #print("tower", t.number, t.side, "victim: ", victim.number, victim.side, victim.__class__.__name__)
                     #Rocket(boss= t, side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
                     #       target=victim, color=t.color)
-                    rv = pygame.math.Vector2(50,0)
+                    rv = pygame.math.Vector2(70,0)
                     diff = victim.pos - t.pos
                     a = diff.angle_to(pygame.math.Vector2(1,0)) 
                     #print("winkel",a)
