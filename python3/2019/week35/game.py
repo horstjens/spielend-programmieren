@@ -690,7 +690,7 @@ class Viewer():
         for j in self.joysticks:
             j.init()
         self.prepare_sprites()
-        self.calculate_terrain()
+        
         self.loadbackground()
         self.load_sounds()
         #self.world = World()
@@ -762,7 +762,7 @@ class Viewer():
             Viewer.images["swamp1"] = pygame.image.load(os.path.join("data", "reed.png"))
             Viewer.images["swamp1"] = pygame.image.load(os.path.join("data", "reed2.png"))
             Viewer.images["rocks1"] = pygame.image.load(os.path.join("data", "rocks.png"))
-            Viewer.images["rocks2"] = pygame.image.load(os.path.join("data", "rocks.png"))
+            Viewer.images["rocks2"] = pygame.image.load(os.path.join("data", "rocks2.png"))
             Viewer.images["windmill"] = pygame.image.load(os.path.join("data", "windmill-01.png"))
             
             
@@ -1071,7 +1071,8 @@ class Viewer():
                 # ==============================================
                 line.append([c,0, random.choice(("forest", "water", "farm", "rock","swamp"))])
             self.cells.append(line)
-        
+        #--- new terrain ---
+        self.calculate_terrain()
             
         
     def paint_cells(self):
@@ -1099,16 +1100,21 @@ class Viewer():
             print("problem extracting x,y from posvector:", posvector)
         x = min(self.maxx, px // self.gridsize)
         y = min(self.maxy, py // self.gridsize)
-        return x, y
+        return int(x), int(y)
     
     def calculate_terrain(self):
         """creates an image with terrain graphic, like the background"""
+        if len(Viewer.images) == 0:
+            return
         self.terrain_layer = pygame.Surface((Viewer.width, Viewer.height))
         for y in range(0, self.maxy+1):
             for x in range(0, self.maxx+1):
                 what = self.cells[y][x][2]
                 # ("forest", "water", "farm", "rock","swamp")
                 #if what == "forest":
+                #--- force castle corners to be a farm
+                if (x==0 and y==0) or (x ==self.maxx and y==self.maxy):
+                    what = "farm"
                 pic = random.choice([Viewer.images[p] for p in Viewer.images.keys() if what in p])
                 self.terrain_layer.blit(pic, (x * self.gridsize, y*self.gridsize))
         self.terrain_layer.set_colorkey((0,0,0))
@@ -1299,6 +1305,15 @@ class Viewer():
                     # --- player build tower -----
                     for player, key in [(self.player1, pygame.K_LCTRL), (self.player2, pygame.K_RCTRL)]:
                         if event.key == key:
+                            # ---- check if tryint to build on water ----
+                            x,y = self.pos_to_grid(player.pos)
+                            print("x, y:", x,y, self.cells[y][x][2])
+                            if self.cells[y][x][2] == "water":
+                                Flytext(pos=pygame.math.Vector2(player.pos.x, player.pos.y),
+                                            text="Building on Water not possible!",
+                                            color=(255,255,0), fontsize=22, max_age=2,
+                                            move=pygame.math.Vector2(0, 15))
+                                break 
                             # ---- check if there is already a tower ----
                             for t in self.towergroup:
                                 if t.pos==player.pos:
