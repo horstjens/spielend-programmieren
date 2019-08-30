@@ -324,6 +324,7 @@ class Soldier(VectorSprite):
         self._layer = 5
         self.hitpoints = 50
         self.hitpointsfull = 50
+        self.weaponrange = 200
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
@@ -412,6 +413,7 @@ class Tower(VectorSprite):
         Hitpointbar(bossnumber=self.number, kill_with_boss = True,
                     sticky_with_boss = True, ydistance=50, width=72,
                     always_calculate_image = True)
+        self.weaponrange = 300
         if self.side == 2:
             self.color = (0,0,255)
         elif self.side == 1:
@@ -513,12 +515,14 @@ class Bullet (VectorSprite):
         self.kill_on_edge = False
         self.bounce_on_edge= True
         self.max_age = 10
-        self.color = self.boss.color
+        damage = 1
+        #self.color = self.boss.color
         
         
     def create_image(self):
-        self.image = pygame.Surface((10,10))
-        pygame.draw.circle(self.image, self.color, (5,5), 5)
+        self.image = pygame.Surface((10,2))
+        self.image.fill((255,0,255))
+        #pygame.draw.circle(self.image, self.color, (5,5), 5)
         self.image.set_colorkey((0,0,0))
         self.image.convert_alpha()
         self.rect= self.image.get_rect()
@@ -686,6 +690,7 @@ class Viewer():
         for j in self.joysticks:
             j.init()
         self.prepare_sprites()
+        self.calculate_terrain()
         self.loadbackground()
         self.load_sounds()
         #self.world = World()
@@ -747,6 +752,26 @@ class Viewer():
             Viewer.images["castle"] = pygame.image.load(os.path.join("data", "keep-tile.png"))
             Viewer.images["tower"] = pygame.image.load(os.path.join("data", "keep-convex-bl.png"))
             Viewer.images["soldier"] = pygame.image.load(os.path.join("data", "scout-ranged-1.png"))
+            Viewer.images["farm1"] = pygame.image.load(os.path.join("data", "farm-veg-spring.png"))
+            Viewer.images["farm2"] = pygame.image.load(os.path.join("data", "farm-veg-spring2.png"))
+            Viewer.images["fire1"] = pygame.image.load(os.path.join("data", "fire1.png"))
+            Viewer.images["forest1"] = pygame.image.load(os.path.join("data", "mixed-summer.png"))
+            Viewer.images["water1"] = pygame.image.load(os.path.join("data", "ocean-A08.png"))
+            Viewer.images["water1"] = pygame.image.load(os.path.join("data", "ocean-A09.png"))
+            Viewer.images["forest2"] = pygame.image.load(os.path.join("data", "pine.png"))
+            Viewer.images["swamp1"] = pygame.image.load(os.path.join("data", "reed.png"))
+            Viewer.images["swamp1"] = pygame.image.load(os.path.join("data", "reed2.png"))
+            Viewer.images["rocks1"] = pygame.image.load(os.path.join("data", "rocks.png"))
+            Viewer.images["rocks2"] = pygame.image.load(os.path.join("data", "rocks.png"))
+            Viewer.images["windmill"] = pygame.image.load(os.path.join("data", "windmill-01.png"))
+            
+            
+            
+            
+            
+            
+            
+            
             # --- scalieren ---
             #for name in Viewer.images:
             #    if name == "bossrocket":
@@ -774,21 +799,22 @@ class Viewer():
         #self.group1=pygame.sprite.Group()
         #self.group2=pygame.sprite.Group()
         self.targetgroup = pygame.sprite.Group()
+        self.targetgroup2 = pygame.sprite.Group()
         VectorSprite.groups = self.allgroup
         Flytext.groups = self.allgroup, self.flytextgroup
         
         #Cannon.groups = self.allgroup, self.playergroup
         
         Bullet.groups = self.allgroup, self.bulletgroup
-        Rocket.groups = self.allgroup, self.rocketgroup #, self.targetgroup
-        Player.groups = self.allgroup, self.playergroup, self.movementblockgroup, self.targetgroup,
+        Rocket.groups = self.allgroup, self.rocketgroup, self.targetgroup2
+        Player.groups = self.allgroup, self.playergroup, self.movementblockgroup, self.targetgroup, self.targetgroup2
         #PowerUp.groups = self.allgroup, self.powerupgroup
         #Guardian.groups = self.allgroup, self.guardiangroup
-        Soldier.groups = self.allgroup, self.armygroup, self.targetgroup, 
-        Castle.groups = self.allgroup, self.castlegroup, self.movementblockgroup, self.targetgroup
-        Wolf.groups = self.allgroup, self.wolfgroup, self.targetgroup
+        Soldier.groups = self.allgroup, self.armygroup, self.targetgroup, self.targetgroup2
+        Castle.groups = self.allgroup, self.castlegroup, self.movementblockgroup, self.targetgroup, self.targetgroup2
+        Wolf.groups = self.allgroup, self.wolfgroup, self.targetgroup, self.targetgroup2
         Hitpointbar.groups = self.allgroup, self.bargroup
-        Tower.groups = self.allgroup, self.towergroup, self.movementblockgroup, self.targetgroup
+        Tower.groups = self.allgroup, self.towergroup, self.movementblockgroup, self.targetgroup, self.targetgroup2
     
     
     def place_sprites(self):    
@@ -1040,14 +1066,17 @@ class Viewer():
             for x in range(0, self.maxx+1):
                 #c = random.randint(96,160)
                 c = 128
-                # 0: color, 1: ??
-                line.append([c,0])
+                # ============== values in cell ================
+                # 0: color, 1: age, 2: terrain
+                # ==============================================
+                line.append([c,0, random.choice(("forest", "water", "farm", "rock","swamp"))])
             self.cells.append(line)
+        
             
         
     def paint_cells(self):
         for y, line in enumerate(self.cells):
-            for x, (color, radius) in enumerate(line):
+            for x, (color, radius, terrain) in enumerate(line):
                 if color == 128:
                     c = (128,128,128)
                 elif color > 128:
@@ -1071,7 +1100,22 @@ class Viewer():
         x = min(self.maxx, px // self.gridsize)
         y = min(self.maxy, py // self.gridsize)
         return x, y
-        
+    
+    def calculate_terrain(self):
+        """creates an image with terrain graphic, like the background"""
+        self.terrain_layer = pygame.Surface((Viewer.width, Viewer.height))
+        for y in range(0, self.maxy+1):
+            for x in range(0, self.maxx+1):
+                what = self.cells[y][x][2]
+                # ("forest", "water", "farm", "rock","swamp")
+                #if what == "forest":
+                pic = random.choice([Viewer.images[p] for p in Viewer.images.keys() if what in p])
+                self.terrain_layer.blit(pic, (x * self.gridsize, y*self.gridsize))
+        self.terrain_layer.set_colorkey((0,0,0))
+        self.terrain_layer.convert_alpha()
+                
+                
+                
     def update_cells(self, seconds):
         """change color value of cells if player is nearby, paint raindrop"""
         # ------ update cells -----
@@ -1271,7 +1315,10 @@ class Viewer():
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
             
-  
+            
+                
+           
+            
             # ------ mouse handler ------
             left,middle,right = pygame.mouse.get_pressed()
             oldleft, oldmiddle, oldright = left, middle, right
@@ -1311,17 +1358,17 @@ class Viewer():
                             #player.strafe_right()                
             
             # ========== COLLISION DETECTION =====================
-            # ----- collision detection between player and bullets---
-            for p in self.playergroup:
-                crashgroup=pygame.sprite.spritecollide(p,
-                           self.bulletgroup, False, 
+            # ----- collision between bullet and target2---
+            for bu in self.bulletgroup:
+                crashgroup=pygame.sprite.spritecollide(bu,
+                           self.targetgroup2, False, 
                            pygame.sprite.collide_mask)
-                for o in crashgroup:
-                      if o.boss.number == p.number:
+                for target2 in crashgroup:
+                      if target2.side == bu.side:
                           continue
-        
-                      elastic_collision(o, p)
-                      o.kill()
+                      #elastic_collision(o, p)
+                      target2.hitpoints -= bu.damage
+                      bu.kill()
                       
             #---- collision between rocket and target? ----          
             for rocket in self.rocketgroup:
@@ -1381,23 +1428,49 @@ class Viewer():
                         pos=pygame.math.Vector2(c.pos.x, c.pos.y),move=m,
                         max_age = 120, bounce_on_edge = True)
                         
-            # --- soldier shoots (rocket) bullet ----
+            # --- soldier shoots (rocket)  ----
             for s in self.armygroup:
                 if random.random() < 0.01:
                     targets = [t for t in self.targetgroup if t.side != s.side]
-                    victim = random.choice(targets)
+                    targets2 = []
+                    for ta in targets:
+                        diff = s.pos - ta.pos
+                        if diff.length() < s.weaponrange:
+                            targets2.append(ta)
+                    if len(targets2) == 0:
+                        continue
+                    victim = random.choice(targets2)
                     Rocket(boss=s, side=s.side, pos=pygame.math.Vector2(s.pos.x, s.pos.y),
                            target=victim, color=s.color)
               
             
-            # ---- tower launch rocket ----
+            # ---- tower launch bullet ----
             for t in self.towergroup:
-                if random.random() < 0.01 :   # 1% chance, 30x pro sec
+                if random.random() < 1.00 :   # 100% chance, 30x pro sec
                     targets = [o for o in self.targetgroup if o.side != t.side]
-                    victim = random.choice(targets)
-                    print("tower", t.number, t.side, "victim: ", victim.number, victim.side, victim.__class__.__name__)
-                    Rocket(boss= t, side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
-                           target=victim, color=t.color)
+                    targets2 = []
+                    for ta in targets:
+                        diff = t.pos - ta.pos
+                        if diff.length() < t.weaponrange:
+                            targets2.append(ta)
+                    if len(targets2) == 0:
+                        continue
+                    victim = random.choice(targets2)
+                    #print("tower", t.number, t.side, "victim: ", victim.number, victim.side, victim.__class__.__name__)
+                    #Rocket(boss= t, side=t.side, pos=pygame.math.Vector2(t.pos.x, t.pos.y),
+                    #       target=victim, color=t.color)
+                    rv = pygame.math.Vector2(50,0)
+                    diff = victim.pos - t.pos
+                    a = diff.angle_to(pygame.math.Vector2(1,0)) 
+                    #print("winkel",a)
+                    rv.rotate_ip(a)
+                    rv.y *= -1
+                    
+                    
+                    #a = rv.angle_to(pygame.math.Vector2(0,1))-90
+                    Bullet(pos=pygame.math.Vector2(t.pos.x, t.pos.y),
+                           move = rv, side = t.side, angle=-a, max_distance = t.weaponrange)
+                           
               
            
             
@@ -1411,10 +1484,21 @@ class Viewer():
             ##pygame.draw.line(self.screen, (255, 255, random.randint(200,255)), (0, -Viewer.border_y), (Viewer.width, -Viewer.border_y),5)         
             
             self.paint_cells()
+            self.screen.blit(self.terrain_layer, (0,0))
             self.draw_grid()
             
-          
-           
+            # ---- draw weapon ranges ----
+            if pressed_keys[pygame.K_r]:
+                # show weapon ranges of soldiers and towers
+                for a in self.armygroup:
+                    c = random.randint(200,255)
+                    print("circle", a.pos)
+                    pygame.draw.circle(self.screen, (c,c,c), (int(a.pos.x), -int(a.pos.y)), a.weaponrange, 1) 
+                 
+                for t in self.towergroup:
+                    c = random.randint(200,255)
+                    pygame.draw.circle(self.screen, (c,c,c), (int(t.pos.x), -int(t.pos.y)), t.weaponrange, 1) 
+            
             
             #--- trails for rockets ----
             for r in self.rocketgroup:
@@ -1438,7 +1522,7 @@ class Viewer():
             #for (color, age) in line:
             for y in range(0, self.maxy+1):
                 for x in range(0, self.maxx+1):
-                    color, age = self.cells[y][x]
+                    color, age, terrain = self.cells[y][x]
                     if color == 0:
                         bluecells += 1
                     elif color == 255:
