@@ -521,7 +521,12 @@ class Bullet (VectorSprite):
         
     def create_image(self):
         self.image = pygame.Surface((10,2))
-        self.image.fill((255,0,255))
+        if self.side == 1:
+            self.image.fill((255,0,255))
+        elif self.side == 2:
+            self.image.fill((255,255,0))
+        else:
+            self.image.fill((255,255,255))
         #pygame.draw.circle(self.image, self.color, (5,5), 5)
         self.image.set_colorkey((0,0,0))
         self.image.convert_alpha()
@@ -837,7 +842,13 @@ class Viewer():
         self.wolf1 = Wolf(pos= pygame.math.Vector2(600, -400),
                           move=pygame.math.Vector2(0,30),
                           bounce_on_edge=True )
-        
+        Tower(side=0, pos=pygame.math.Vector2(Viewer.width//2,
+            -Viewer.height//2))
+        for t in range(5):
+            x = random.randint(0, Viewer.width)
+            y = -random.randint(0, Viewer.height)
+            Tower(side=0, pos=pygame.math.Vector2(x,y))
+                                              
         
     def menu_run(self):
         running = True
